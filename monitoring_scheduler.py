@@ -2,7 +2,7 @@ from telebot import TeleBot
 import time
 
 from extract_state import validators_state
-from config import TELEBOT_TOKEN, DB_FILE, BASE_KEYBOARD, SCHEDULER_TIME
+from config import TELEBOT_TOKEN, DB_FILE, BASE_KEYBOARD, SCHEDULER_TIME, DEV_MODE
 from sql_utils import SQLighter
 
 
@@ -45,6 +45,8 @@ def check_send_messages():
 
 if __name__ == '__main__':
 
+    if DEV_MODE:
+        check_send_messages()
     # Handler to avoid disconnection
     while True:
         try:

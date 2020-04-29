@@ -3,7 +3,7 @@ from collections import defaultdict
 import time
 
 from extract_state import validators_state
-from config import TELEBOT_TOKEN, DB_FILE, BASE_MENU_LOWER, BASE_KEYBOARD
+from config import TELEBOT_TOKEN, DB_FILE, BASE_MENU_LOWER, BASE_KEYBOARD, DEV_MODE
 from sql_utils import SQLighter
 
 bot = TeleBot(TELEBOT_TOKEN)
@@ -130,6 +130,8 @@ def add_validator_moniker(message):
 
 if __name__ == '__main__':
 
+    if DEV_MODE:
+        bot.polling(none_stop=True)
     # Handler to avoid disconnection
     while True:
         try:

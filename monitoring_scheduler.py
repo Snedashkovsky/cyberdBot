@@ -46,12 +46,14 @@ def check_send_messages():
 if __name__ == '__main__':
 
     if DEV_MODE:
+        print('DEV_MODE')
         check_send_messages()
-    # Handler to avoid disconnection
-    while True:
-        try:
-            check_send_messages()
-        except Exception as e:
-            print(e)
-            # restart in 15 sec
-            time.sleep(15)
+    else:
+        # Handler to avoid disconnection
+        while True:
+            try:
+                check_send_messages()
+            except Exception as e:
+                print(e)
+                # restart in 15 sec
+                time.sleep(15)

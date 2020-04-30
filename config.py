@@ -8,7 +8,7 @@ TELEBOT_TOKEN = os.getenv('TELEBOT_TOKEN')
 VALIDATOR_QUERY = os.getenv('VALIDATOR_QUERY', 'cyberdcli query staking validators --trust-node=true')
 
 # Development mode for easy bot stop
-DEV_MODE = os.getenv('DEV_MODE', 0)
+DEV_MODE = int(os.getenv('DEV_MODE', 0))
 
 # SQLLite file name
 DB_FILE = os.getenv('DB_FILE', 'db_sqlite.vdb')

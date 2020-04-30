@@ -1,16 +1,13 @@
 # cyberdBot
 Telegram bot for [cyberd](http://github.com/cybercongress/cyberd/) node status data
 ## Run
-### Dev
-Add your Telegram bot token into `start_bot_dev.sh` and `start_monitoring_scheduler_dev.sh`
-#### Main Bot
-```bash ./start_bot_dev.sh```
-#### Monitoring Scheduler
-```bash ./start_monitoring_scheduler_dev.sh```
+Add your Telegram Bot Token into `start_bot.sh`
 
-### Production
-Add your Telegram bot token into `start_bot.sh` and `start_monitoring_scheduler.sh`
-#### Main Bot
-```bash ./start_bot.sh```
-### Monitoring Scheduler
-```bash ./start_monitoring_scheduler.sh```
+```
+bash  ./start_bot.sh  m|main|s|scheduler  [d|dev]
+
+Using:
+ m|main - Main Bot
+ s|scheduler - Monitoring Scheduler
+ [d|dev] - Development Mode
+```

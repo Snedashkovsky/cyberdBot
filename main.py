@@ -131,12 +131,14 @@ def add_validator_moniker(message):
 if __name__ == '__main__':
 
     if DEV_MODE:
+        print('DEV_MODE')
         bot.polling(none_stop=True)
-    # Handler to avoid disconnection
-    while True:
-        try:
-            bot.polling(none_stop=True)
-        except Exception as e:
-            print(e)
-            # restart in 15 sec
-            time.sleep(15)
+    else:
+        # Handler to avoid disconnection
+        while True:
+            try:
+                bot.polling(none_stop=True)
+            except Exception as e:
+                print(e)
+                # restart in 15 sec
+                time.sleep(15)

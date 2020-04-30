@@ -3,6 +3,7 @@ Telegram bot for [cyberd](http://github.com/cybercongress/cyberd/) node status d
 ## Run
 Add your Telegram Bot Token into `start_bot.sh`
 
+Run
 ```bash  
 ./start_bot.sh  m|main|s|scheduler  [d|dev]
 

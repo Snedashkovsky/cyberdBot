@@ -2,9 +2,10 @@ from telebot import TeleBot
 from collections import defaultdict
 import time
 
-from extract_state import validators_state
-from config import TELEBOT_TOKEN, DB_FILE, BASE_MENU_LOWER, BASE_KEYBOARD, DEV_MODE
-from sql_utils import SQLighter
+from src.extract_state import validators_state
+from config import TELEBOT_TOKEN, DB_FILE, BASE_MENU_LOWER, BASE_KEYBOARD, DEV_MODE, States
+from src.sql_utils import SQLighter
+from src.ipfs_utils import upload_text
 
 bot = TeleBot(TELEBOT_TOKEN)
 db_worker = SQLighter(DB_FILE)
@@ -14,7 +15,7 @@ db_worker = SQLighter(DB_FILE)
 db_worker.create_table_monikers()
 db_worker.create_table_scheduler()
 
-auto_check = defaultdict(lambda: '0', key='some_value')
+state = defaultdict(lambda: 0, key='some_value')
 
 
 def dict_to_md_list(input_dict):
@@ -57,6 +58,7 @@ def start_message(message):
     func=lambda message: message.text.lower() in BASE_MENU_LOWER,
     content_types=['text'])
 def main_menu(message):
+    state[message.chat.id] = 0
     if message.text.lower() == 'add validator moniker':
         bot.send_message(
             message.chat.id,
@@ -79,7 +81,6 @@ def main_menu(message):
             reply_markup=BASE_KEYBOARD)
     elif message.text.lower() == 'hourly jail check':
         scheduler_state = db_worker.get_scheduler_state(message.chat.id)
-        print(scheduler_state)
         if scheduler_state == 0:
             db_worker.set_scheduler_state(message.chat.id, 1)
             bot.send_message(
@@ -97,10 +98,15 @@ def main_menu(message):
                 message.chat.id,
                 'Unset hourly jail check',
                 reply_markup=BASE_KEYBOARD)
-
+    elif message.text.lower() == 'upload to ipfs':
+        state[message.chat.id] = 1
+        bot.send_message(
+            message.chat.id,
+            'Please send content',
+            reply_markup=BASE_KEYBOARD)
 
 @bot.message_handler(
-    func=lambda message: message.text.lower() not in BASE_MENU_LOWER)
+    func=lambda message: (message.text.lower() not in BASE_MENU_LOWER) & (state[message.chat.id] == States.S_START))
 def add_validator_moniker(message):
 
     moniker = message.text
@@ -125,6 +131,25 @@ def add_validator_moniker(message):
             message.chat.id,
             'The moniker you have entered is not in the list. Please enter a valid moniker and be gentle, the bot is '
             'case sensitive',
+            reply_markup=BASE_KEYBOARD)
+
+
+@bot.message_handler(content_types=['text'])
+@bot.message_handler(
+    func=lambda message: (message.text.lower() not in BASE_MENU_LOWER) \
+                       & (state[message.chat.id] == States.S_UPLOAD_IPFS))
+def upload_to_ipfs(message):
+
+    ipfs_hash, error = upload_text(message.text)
+    if ipfs_hash:
+        bot.send_message(
+            message.chat.id,
+            f'Text successfully uploaded. IPFS Hash: {ipfs_hash}\nIPFS Link: https://ipfs.io/ipfs/{ipfs_hash}\nPlease send other content',
+            reply_markup=BASE_KEYBOARD)
+    else:
+        bot.send_message(
+            message.chat.id,
+            f'Text not uploaded. Error: {error}\nPlease send other content',
             reply_markup=BASE_KEYBOARD)
 
 

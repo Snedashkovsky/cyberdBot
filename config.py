@@ -1,4 +1,5 @@
 import os
+from enum import Enum
 from telebot.types import ReplyKeyboardMarkup
 
 # Telegram bot token from BotFather
@@ -13,13 +14,25 @@ DEV_MODE = int(os.getenv('DEV_MODE', 0))
 # SQLLite file name
 DB_FILE = os.getenv('DB_FILE', 'db_sqlite.vdb')
 
+# IPFS HOST
+IPFS_HOST = 'http://localhost:5001'
+
 # Hourly notifications
 SCHEDULER_TIME = 60 * 60
 
 # BASE MENU
-BASE_MENU = ['Add validator moniker', 'Jail check', 'Hourly jail check', 'Validator list', 'Reset validator moniker']
+BASE_MENU = ['Add validator moniker', 'Reset validator moniker',
+             'Jail check',            'Hourly jail check',
+             'Validator list',        'Upload to IPFS']
 BASE_MENU_LOWER = list(map(str.lower, BASE_MENU))
 BASE_KEYBOARD = ReplyKeyboardMarkup(True, True)
-BASE_KEYBOARD.add(BASE_MENU[0], BASE_MENU[4])
-BASE_KEYBOARD.add(BASE_MENU[1], BASE_MENU[2])
-BASE_KEYBOARD.add(BASE_MENU[3])
+BASE_KEYBOARD.add(BASE_MENU[0], BASE_MENU[1])
+BASE_KEYBOARD.add(BASE_MENU[2], BASE_MENU[3])
+BASE_KEYBOARD.add(BASE_MENU[4], BASE_MENU[5])
+
+
+# default status class
+class States(Enum):
+
+    S_START = 0  # Start position
+    S_UPLOAD_IPFS = 1

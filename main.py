@@ -90,8 +90,7 @@ def send_ipfs_notification(message, ipfs_hash, error):
     else:
         bot.send_message(
             message.chat.id,
-            f'{message.content_type} not uploaded.\nError: <i>{error}</i>\nPlease send other content',
-            parse_mode='HTML',
+            f'{message.content_type} not uploaded.\nError: {error}\nPlease send other content',
             reply_markup=BASE_KEYBOARD)
 
 

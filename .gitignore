@@ -1,6 +1,9 @@
 # DB SQLite
 db_sqlite.vdb
 
+# Templarary files for uploading to ipfs
+temp/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

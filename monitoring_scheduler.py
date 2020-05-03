@@ -1,9 +1,9 @@
 from telebot import TeleBot
 import time
 
-from extract_state import validators_state
+from src.extract_state import validators_state
 from config import TELEBOT_TOKEN, DB_FILE, BASE_KEYBOARD, SCHEDULER_TIME, DEV_MODE
-from sql_utils import SQLighter
+from src.sql_utils import SQLighter
 
 
 bot = TeleBot(TELEBOT_TOKEN)

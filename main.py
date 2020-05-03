@@ -1,7 +1,8 @@
-from telebot import TeleBot
+from telebot import TeleBot, apihelper
 from collections import defaultdict
 import time
 from requests import get
+from json import dumps
 
 from src.extract_state import validators_state
 from config import TELEBOT_TOKEN, DB_FILE, BASE_MENU_LOWER, BASE_KEYBOARD, DEV_MODE, States
@@ -63,15 +64,15 @@ def send_ipfs_notification(message, ipfs_hash, error):
             reply_markup=BASE_KEYBOARD)
 
 
-@bot.message_handler(content_types=['new_chat_members', 'left_chat_member', 'new_chat_title', 'new_chat_photo',
-                                    'delete_chat_photo', 'group_chat_created', 'supergroup_chat_created',
-                                    'channel_chat_created', 'migrate_to_chat_id', 'migrate_from_chat_id',
-                                    'pinned_message'])
+@bot.message_handler(
+    content_types=['new_chat_members', 'left_chat_member', 'new_chat_title', 'new_chat_photo', 'delete_chat_photo',
+                   'group_chat_created', 'supergroup_chat_created', 'channel_chat_created', 'migrate_to_chat_id',
+                   'migrate_from_chat_id', 'pinned_message'])
 def pass_unsupported_content_types(message):
     pass
 
 
-@bot.message_handler(content_types=['audio', 'sticker', 'video_note', 'location', 'contact', 'video'])
+@bot.message_handler(content_types=['sticker'])
 def chat_unsupported_content_types(message):
 
     bot.send_message(
@@ -80,10 +81,8 @@ def chat_unsupported_content_types(message):
         reply_markup=BASE_KEYBOARD)
 
 
-# TODO 'audio', 'location', 'contact', 'video'
-
-
-@bot.message_handler(content_types=['document', 'photo', 'voice'])
+@bot.message_handler(
+    content_types=['audio', 'contact', 'document', 'location', 'photo', 'video', 'video_note', 'voice'])
 def document_upload_to_ipfs(message):
     if state[message.chat.id] == States.S_START:
         bot.send_message(
@@ -91,15 +90,28 @@ def document_upload_to_ipfs(message):
             'Please press "Upload to IPFS" button for upload this file to IPFS',
             reply_markup=BASE_KEYBOARD)
         return
-    if message.content_type == 'document':
+    if message.content_type in ('audio', 'video', 'video_note', 'voice'):
+        file_id = message.json[message.content_type]['file_id']
+    elif message.content_type == 'document':
         file_id = message.document.file_id
+    elif message.content_type in ('location', 'contact'):
+        # TODO change location and contact format for more convenient
+        ipfs_hash, error = upload_text(dumps(message.json[message.content_type]))
+        send_ipfs_notification(message, ipfs_hash, error)
+        return
     elif message.content_type == 'photo':
         file_id = message.json['photo'][-1]['file_id']
-    elif message.content_type == 'voice':
-        file_id = message.json['voice']['file_id']
     else:
         return
-    file_info = bot.get_file(file_id)
+    try:
+        file_info = bot.get_file(file_id)
+    except apihelper.ApiException as file_info_exception:
+        print(file_info_exception)
+        bot.send_message(
+            message.chat.id,
+            'Please upload file less than 20 MB',
+            reply_markup=BASE_KEYBOARD)
+        return
     response = get('https://api.telegram.org/file/bot{0}/{1}'.format(TELEBOT_TOKEN, file_info.file_path))
     file_path = 'temp/' + file_id
     if response.status_code == 200:
@@ -119,7 +131,8 @@ def start_message(message):
 
 
 @bot.message_handler(
-    func=lambda message: message.text.lower() in BASE_MENU_LOWER
+    func=lambda message: message.text.lower() in BASE_MENU_LOWER,
+    content_types=['text']
 )
 def main_menu(message):
     state[message.chat.id] = States.S_START
@@ -171,8 +184,8 @@ def main_menu(message):
 
 
 @bot.message_handler(
-    content_types=['text'],
-    func=lambda message: (message.text.lower() not in BASE_MENU_LOWER) & (state[message.chat.id] == States.S_START))
+    func=lambda message: (message.text.lower() not in BASE_MENU_LOWER) & (state[message.chat.id] == States.S_START),
+    content_types=['text'])
 def add_validator_moniker(message):
     moniker = message.text
     moniker_list = db_worker.get_moniker(message.chat.id)
@@ -200,9 +213,9 @@ def add_validator_moniker(message):
 
 
 @bot.message_handler(
-    content_types=['text'],
-    func=lambda message: (message.text.lower() not in BASE_MENU_LOWER) \
-                         & (state[message.chat.id] == States.S_UPLOAD_IPFS))
+        func=lambda message: (message.text.lower() not in BASE_MENU_LOWER) \
+                         & (state[message.chat.id] == States.S_UPLOAD_IPFS),
+        content_types=['text'])
 def text_upload_to_ipfs(message):
     ipfs_hash, error = upload_text(message.text)
     send_ipfs_notification(message, ipfs_hash, error)

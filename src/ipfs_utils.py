@@ -16,7 +16,7 @@ def upload_text(text):
         return None, upload_error
 
 
-def upload_files(file_name):
+def upload_file(file_name):
     print(f'Uploading file: {file_name}')
     try:
         files = {
@@ -27,21 +27,3 @@ def upload_files(file_name):
     except Exception as upload_error:
         print(upload_error)
         return None, upload_error
-
-
-def upload_image(file_name):
-    print(file_name)
-    pass
-    return
-
-
-def upload_video(file_name):
-    print(file_name)
-    pass
-    return
-
-
-def upload_voice(file_name):
-    print(file_name)
-    pass
-    return

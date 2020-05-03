@@ -6,7 +6,7 @@ from requests import get
 from src.extract_state import validators_state
 from config import TELEBOT_TOKEN, DB_FILE, BASE_MENU_LOWER, BASE_KEYBOARD, DEV_MODE, States
 from src.sql_utils import SQLighter
-from src.ipfs_utils import upload_text, upload_files
+from src.ipfs_utils import upload_text, upload_file
 
 bot = TeleBot(TELEBOT_TOKEN)
 db_worker = SQLighter(DB_FILE)
@@ -51,7 +51,8 @@ def send_ipfs_notification(message, ipfs_hash, error):
     if ipfs_hash:
         bot.send_message(
             message.chat.id,
-            f'{message.content_type} successfully uploaded\nIPFS Hash: <u>{ipfs_hash}</u>\nIPFS Link: https://ipfs.io/ipfs/{ipfs_hash}\nPlease send other content',
+            f'{message.content_type} successfully uploaded\nIPFS Hash: <u>{ipfs_hash}</u>\nIPFS Link: '
+            f'https://ipfs.io/ipfs/{ipfs_hash}\nPlease send other content',
             parse_mode="HTML",
             reply_markup=BASE_KEYBOARD)
     else:
@@ -70,37 +71,40 @@ def pass_unsupported_content_types(message):
     pass
 
 
-@bot.message_handler(content_types=['audio', 'photo', 'sticker', 'video_note', 'location', 'contact', 'video', 'voice'])
+@bot.message_handler(content_types=['audio', 'sticker', 'video_note', 'location', 'contact', 'video', 'voice'])
 def chat_unsupported_content_types(message):
+
     bot.send_message(
         message.chat.id,
         f'Unsupported message type: {message.content_type}',
         reply_markup=BASE_KEYBOARD)
 
 
-# TODO 'audio', 'photo', 'location', 'contact', 'video', 'voice'
+# TODO 'audio', 'location', 'contact', 'video', 'voice'
 
 
-@bot.message_handler(content_types=['document'])
+@bot.message_handler(content_types=['document', 'photo'])
 def document_upload_to_ipfs(message):
-    print(state[message.chat.id], States.S_START)
-    print(state[message.chat.id] == States.S_START)
     if state[message.chat.id] == States.S_START:
         bot.send_message(
             message.chat.id,
             'Please press "Upload to IPFS" button for upload this file to IPFS',
             reply_markup=BASE_KEYBOARD)
         return
-    file_info = bot.get_file(message.document.file_id)
+    if message.content_type == 'document':
+        file_id = message.document.file_id
+    elif message.content_type == 'photo':
+        file_id = message.json['photo'][-1]['file_id']
+    else:
+        return
+    file_info = bot.get_file(file_id)
     response = get('https://api.telegram.org/file/bot{0}/{1}'.format(TELEBOT_TOKEN, file_info.file_path))
-    # print(str(file.status_code))
-    # print(file.headers.get('Content-Type'))
-    file_path = 'temp/' + message.document.file_id
+    file_path = 'temp/' + file_id
     if response.status_code == 200:
         with open(file_path, 'wb') as f:
             for chunk in response.iter_content(1024):
                 f.write(chunk)
-    ipfs_hash, error = upload_files(file_path)
+    ipfs_hash, error = upload_file(file_path)
     send_ipfs_notification(message, ipfs_hash, error)
 
 

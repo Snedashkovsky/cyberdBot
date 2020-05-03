@@ -1,4 +1,4 @@
-# [cyberdBot](t.me/cyberdbot)
+# [cyberdBot](http://t.me/cyberdbot)
 Telegram bot for [cyberd](http://github.com/cybercongress/cyberd/) node status data and upload content to IPFS
 ## Install
 Install [IPFS node](https://docs-beta.ipfs.io/install/command-line-quick-start/)  

@@ -1,8 +1,7 @@
 from telebot import TeleBot
 from collections import defaultdict
 import time
-import json
-import requests
+from requests import get
 
 from src.extract_state import validators_state
 from config import TELEBOT_TOKEN, DB_FILE, BASE_MENU_LOWER, BASE_KEYBOARD, DEV_MODE, States
@@ -52,12 +51,14 @@ def send_ipfs_notification(message, ipfs_hash, error):
     if ipfs_hash:
         bot.send_message(
             message.chat.id,
-            f'{message.content_type} successfully uploaded\nIPFS Hash: {ipfs_hash}\nIPFS Link: https://ipfs.io/ipfs/{ipfs_hash}\nPlease send other content',
+            f'{message.content_type} successfully uploaded\nIPFS Hash: <u>{ipfs_hash}</u>\nIPFS Link: https://ipfs.io/ipfs/{ipfs_hash}\nPlease send other content',
+            parse_mode="HTML",
             reply_markup=BASE_KEYBOARD)
     else:
         bot.send_message(
             message.chat.id,
-            f'Text not uploaded. Error: {error}\nPlease send other content',
+            f'{message.content_type} not uploaded.\nError: <i>{error}</i>\nPlease send other content',
+            parse_mode="HTML",
             reply_markup=BASE_KEYBOARD)
 
 
@@ -91,7 +92,7 @@ def document_upload_to_ipfs(message):
             reply_markup=BASE_KEYBOARD)
         return
     file_info = bot.get_file(message.document.file_id)
-    response = requests.get('https://api.telegram.org/file/bot{0}/{1}'.format(TELEBOT_TOKEN, file_info.file_path))
+    response = get('https://api.telegram.org/file/bot{0}/{1}'.format(TELEBOT_TOKEN, file_info.file_path))
     # print(str(file.status_code))
     # print(file.headers.get('Content-Type'))
     file_path = 'temp/' + message.document.file_id

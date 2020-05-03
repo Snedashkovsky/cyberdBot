@@ -20,7 +20,7 @@ def upload_files(file_name):
     print(f'Uploading file: {file_name}')
     try:
         files = {
-            'file': (file_name, open(file_name, 'rb'))
+            'file': ('file_name', open(file_name, 'rb'))
         }
         response = requests.post(f'{IPFS_HOST}/api/v0/add', files=files)
         return response.json()['Hash'], None

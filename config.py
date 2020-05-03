@@ -15,7 +15,7 @@ DEV_MODE = int(os.getenv('DEV_MODE', 0))
 DB_FILE = os.getenv('DB_FILE', 'db_sqlite.vdb')
 
 # IPFS HOST
-IPFS_HOST = 'http://localhost:5001'
+IPFS_HOST = os.getenv('IPFS_HOST', 'http://localhost:5001')
 
 # Hourly notifications
 SCHEDULER_TIME = 60 * 60

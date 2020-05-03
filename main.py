@@ -3,6 +3,7 @@ from collections import defaultdict
 import time
 from requests import get
 from json import dumps
+from os import mkdir
 
 from src.extract_state import validators_state
 from config import TELEBOT_TOKEN, DB_FILE, BASE_MENU_LOWER, BASE_KEYBOARD, DEV_MODE, States
@@ -12,8 +13,18 @@ from src.ipfs_utils import upload_text, upload_file
 bot = TeleBot(TELEBOT_TOKEN)
 db_worker = SQLighter(DB_FILE)
 
+# Create directory for temporary files
+try:
+    mkdir('temp')
+except OSError:
+    print('Creation of the directory "temp" failed. Maybe directory already exists.')
+else:
+    print('Successfully created the directory "temp".')
+
+# Drop tables
 # db_worker.drop_table_monikers()
 # db_worker.drop_table_scheduler()
+# Create tables
 db_worker.create_table_monikers()
 db_worker.create_table_scheduler()
 

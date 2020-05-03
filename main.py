@@ -71,7 +71,7 @@ def pass_unsupported_content_types(message):
     pass
 
 
-@bot.message_handler(content_types=['audio', 'sticker', 'video_note', 'location', 'contact', 'video', 'voice'])
+@bot.message_handler(content_types=['audio', 'sticker', 'video_note', 'location', 'contact', 'video'])
 def chat_unsupported_content_types(message):
 
     bot.send_message(
@@ -80,10 +80,10 @@ def chat_unsupported_content_types(message):
         reply_markup=BASE_KEYBOARD)
 
 
-# TODO 'audio', 'location', 'contact', 'video', 'voice'
+# TODO 'audio', 'location', 'contact', 'video'
 
 
-@bot.message_handler(content_types=['document', 'photo'])
+@bot.message_handler(content_types=['document', 'photo', 'voice'])
 def document_upload_to_ipfs(message):
     if state[message.chat.id] == States.S_START:
         bot.send_message(
@@ -95,6 +95,8 @@ def document_upload_to_ipfs(message):
         file_id = message.document.file_id
     elif message.content_type == 'photo':
         file_id = message.json['photo'][-1]['file_id']
+    elif message.content_type == 'voice':
+        file_id = message.json['voice']['file_id']
     else:
         return
     file_info = bot.get_file(file_id)

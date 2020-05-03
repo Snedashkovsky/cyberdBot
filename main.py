@@ -139,6 +139,14 @@ def files_upload_to_ipfs(message):
         send_ipfs_notification(message, ipfs_hash, error)
 
 
+@bot.message_handler(commands=['start'])
+def start_message(message):
+    bot.send_message(
+        message.chat.id,
+        'Hello {}! Please add a validator moniker'.format(message.from_user.username),
+        reply_markup=BASE_KEYBOARD)
+
+
 @bot.message_handler(
     func=lambda message: (message.text.lower() not in BASE_MENU_LOWER) \
                          & (state[message.chat.id] == States.S_UPLOAD_IPFS),
@@ -146,14 +154,6 @@ def files_upload_to_ipfs(message):
 def text_upload_to_ipfs(message):
     ipfs_hash, error = upload_text(message.text)
     send_ipfs_notification(message, ipfs_hash, error)
-
-
-@bot.message_handler(commands=['start'])
-def start_message(message):
-    bot.send_message(
-        message.chat.id,
-        'Hello {}! Please add a validator moniker'.format(message.from_user.username),
-        reply_markup=BASE_KEYBOARD)
 
 
 @bot.message_handler(
@@ -182,7 +182,7 @@ def main_menu(message):
             '{}'.format(dict_to_md_list(validators_dict)),
             parse_mode="HTML",
             reply_markup=BASE_KEYBOARD)
-    elif message.text.lower() == 'hourly jail check':
+    elif message.text.lower() == 'hourly check':
         scheduler_state = db_worker.get_scheduler_state(message.chat.id)
         if scheduler_state == 0:
             db_worker.set_scheduler_state(message.chat.id, 1)
@@ -205,7 +205,7 @@ def main_menu(message):
         state[message.chat.id] = States.S_UPLOAD_IPFS
         bot.send_message(
             message.chat.id,
-            'Please send content',
+            'Please send text, file, photo, video, audio, contact, location, video note and voice',
             reply_markup=BASE_KEYBOARD)
 
 

@@ -39,7 +39,7 @@ def jail_check(chat_id):
         bot.send_message(
             chat_id,
             dict_to_md_list({key: validators_dict[key] for key in moniker_list}),
-            parse_mode="HTML",
+            parse_mode='HTML',
             reply_markup=BASE_KEYBOARD)
     else:
         bot.send_message(
@@ -48,19 +48,39 @@ def jail_check(chat_id):
             reply_markup=BASE_KEYBOARD)
 
 
+def download_file_from_telegram(message, file_id):
+    try:
+        file_info = bot.get_file(file_id)
+    except apihelper.ApiException as file_info_exception:
+        print(file_info_exception)
+        bot.send_message(
+            message.chat.id,
+            'Please upload file less than 20 MB',
+            reply_markup=BASE_KEYBOARD)
+        return
+    response = get('https://api.telegram.org/file/bot{0}/{1}'.format(TELEBOT_TOKEN, file_info.file_path))
+    file_path = 'temp/' + file_id
+    if response.status_code == 200:
+        with open(file_path, 'wb') as f:
+            for chunk in response.iter_content(1024):
+                f.write(chunk)
+        return file_path
+    return
+
+
 def send_ipfs_notification(message, ipfs_hash, error):
     if ipfs_hash:
         bot.send_message(
             message.chat.id,
             f'{message.content_type} successfully uploaded\nIPFS Hash: <u>{ipfs_hash}</u>\nIPFS Link: '
             f'https://ipfs.io/ipfs/{ipfs_hash}\nPlease send other content',
-            parse_mode="HTML",
+            parse_mode='HTML',
             reply_markup=BASE_KEYBOARD)
     else:
         bot.send_message(
             message.chat.id,
             f'{message.content_type} not uploaded.\nError: <i>{error}</i>\nPlease send other content',
-            parse_mode="HTML",
+            parse_mode='HTML',
             reply_markup=BASE_KEYBOARD)
 
 
@@ -83,7 +103,7 @@ def chat_unsupported_content_types(message):
 
 @bot.message_handler(
     content_types=['audio', 'contact', 'document', 'location', 'photo', 'video', 'video_note', 'voice'])
-def document_upload_to_ipfs(message):
+def files_upload_to_ipfs(message):
     if state[message.chat.id] == States.S_START:
         bot.send_message(
             message.chat.id,
@@ -103,22 +123,18 @@ def document_upload_to_ipfs(message):
         file_id = message.json['photo'][-1]['file_id']
     else:
         return
-    try:
-        file_info = bot.get_file(file_id)
-    except apihelper.ApiException as file_info_exception:
-        print(file_info_exception)
-        bot.send_message(
-            message.chat.id,
-            'Please upload file less than 20 MB',
-            reply_markup=BASE_KEYBOARD)
-        return
-    response = get('https://api.telegram.org/file/bot{0}/{1}'.format(TELEBOT_TOKEN, file_info.file_path))
-    file_path = 'temp/' + file_id
-    if response.status_code == 200:
-        with open(file_path, 'wb') as f:
-            for chunk in response.iter_content(1024):
-                f.write(chunk)
-    ipfs_hash, error = upload_file(file_path)
+    file_path = download_file_from_telegram(message, file_id)
+    if file_path:
+        ipfs_hash, error = upload_file(file_path)
+        send_ipfs_notification(message, ipfs_hash, error)
+
+
+@bot.message_handler(
+    func=lambda message: (message.text.lower() not in BASE_MENU_LOWER) \
+                         & (state[message.chat.id] == States.S_UPLOAD_IPFS),
+    content_types=['text'])
+def text_upload_to_ipfs(message):
+    ipfs_hash, error = upload_text(message.text)
     send_ipfs_notification(message, ipfs_hash, error)
 
 
@@ -210,15 +226,6 @@ def add_validator_moniker(message):
             'The moniker you have entered is not in the list. Please enter a valid moniker and be gentle, the bot is '
             'case sensitive',
             reply_markup=BASE_KEYBOARD)
-
-
-@bot.message_handler(
-        func=lambda message: (message.text.lower() not in BASE_MENU_LOWER) \
-                         & (state[message.chat.id] == States.S_UPLOAD_IPFS),
-        content_types=['text'])
-def text_upload_to_ipfs(message):
-    ipfs_hash, error = upload_text(message.text)
-    send_ipfs_notification(message, ipfs_hash, error)
 
 
 if __name__ == '__main__':

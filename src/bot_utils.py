@@ -58,7 +58,7 @@ def download_file_from_telegram(message, file_id):
 def message_upload_to_ipfs(message):
     if message.content_type == 'text':
         # TODO add condition for check IPFS Hash
-        if len(message.text) == 32:
+        if len(message.text) == 46:
             return message.text, None
         return upload_text(message.text)
     elif message.content_type in ('audio', 'video', 'video_note', 'voice'):

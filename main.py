@@ -65,17 +65,34 @@ def startpoint_cyberlink(message):
     func=lambda message: state[message.chat.id] == States.S_ENDPOINT_CYBERLINK,
     content_types=['audio', 'contact', 'document', 'location', 'photo', 'text', 'video', 'video_note', 'voice'])
 def endpoint_cyberlink(message):
-    ipfs_hash, error = message_upload_to_ipfs(message)
-    cyberlink = send_ipfs_notification(message, ipfs_hash, error, message_text=None)
+    ipfs_hash, ipfs_error = message_upload_to_ipfs(message)
+    send_ipfs_notification(message, ipfs_hash, ipfs_error, message_text=None)
     if ipfs_hash:
-        create_cyberlink(cyberlink_startpoint_ipfs_hash[message.chat.id], ipfs_hash)
         state[message.chat.id] = States.S_STARTPOINT_CYBERLINK
+        cyberlink_hash, cyberlink_error = create_cyberlink(cyberlink_startpoint_ipfs_hash[message.chat.id], ipfs_hash)
+        if cyberlink_hash:
+            bot.send_message(
+                message.chat.id,
+                f'CyberLink created: https://cyber.page/network/euler/tx/{cyberlink_hash}\n'
+                f'Transaction hash: <u>{cyberlink_hash}</u>',
+                parse_mode='HTML',
+                reply_markup=BASE_KEYBOARD)
+            bot.send_message(
+                message.chat.id,
+                f'from: https://ipfs.io/ipfs/{cyberlink_startpoint_ipfs_hash[message.chat.id]}\n'
+                f'to: https://ipfs.io/ipfs/{ipfs_hash}',
+                parse_mode='HTML',
+                reply_markup=BASE_KEYBOARD)
+        elif cyberlink_error:
+            bot.send_message(
+                message.chat.id,
+                f'CyberLink not created\n'
+                f'error: {cyberlink_error}',
+                reply_markup=BASE_KEYBOARD)
         bot.send_message(
             message.chat.id,
-            f'CyberLink created: {cyberlink}\n'
-            f'Please send starting point of new cyberLink or press other button.\n'
-            f'You may send ipfs hash, url, text, file, photo, video, audio, contact, location, video note and voice.',
-            parse_mode='HTML',
+            'Please send starting point of new cyberLink or press other button.\n'
+            'You may send ipfs hash, url, text, file, photo, video, audio, contact, location, video note and voice.',
             reply_markup=BASE_KEYBOARD)
 
 
@@ -91,6 +108,7 @@ def send_message_when_start_state(message):
 
 @bot.message_handler(commands=['start'])
 def start_message(message):
+    # TODO Update message text
     bot.send_message(
         message.chat.id,
         'Hello {}! Please add a validator moniker'.format(message.from_user.username),

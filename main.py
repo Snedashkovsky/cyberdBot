@@ -3,6 +3,7 @@ import time
 from os import mkdir
 
 from src.bot_utils import send_ipfs_notification, jail_check, dict_to_md_list, message_upload_to_ipfs
+from src.cyberd_utils import create_cyberlink
 from src.extract_state import validators_state
 from config import BASE_MENU_LOWER, BASE_KEYBOARD, DEV_MODE, States, bot, db_worker
 
@@ -22,6 +23,7 @@ db_worker.create_table_monikers()
 db_worker.create_table_scheduler()
 
 state = defaultdict(lambda: States.S_START, key='some_value')
+cyberlink_startpoint_ipfs_hash = defaultdict(lambda: None, key='some_value')
 
 
 @bot.message_handler(
@@ -50,32 +52,29 @@ def files_upload_to_ipfs(message):
 
 @bot.message_handler(
     func=lambda message: state[message.chat.id] == States.S_STARTPOINT_CYBERLINK,
-    content_types=['audio', 'contact', 'document', 'location', 'photo', 'video', 'video_note', 'voice'])
+    content_types=['audio', 'contact', 'document', 'location', 'photo', 'text', 'video', 'video_note', 'voice'])
 def startpoint_cyberlink(message):
     ipfs_hash, error = message_upload_to_ipfs(message)
-    send_ipfs_notification(message, ipfs_hash, error)
+    send_ipfs_notification(message, ipfs_hash, error, message_text='endpoint of cyberLink')
     if ipfs_hash:
+        cyberlink_startpoint_ipfs_hash[message.chat.id] = ipfs_hash
         state[message.chat.id] = States.S_ENDPOINT_CYBERLINK
-        bot.send_message(
-            message.chat.id,
-            'Please send endpoint of cyberLink.\n'
-            'You may send ipfs hash, url, text, file, photo, video, audio, contact, location, video note and voice.',
-            parse_mode='HTML',
-            reply_markup=BASE_KEYBOARD)
 
 
 @bot.message_handler(
     func=lambda message: state[message.chat.id] == States.S_ENDPOINT_CYBERLINK,
-    content_types=['audio', 'contact', 'document', 'location', 'photo', 'video', 'video_note', 'voice'])
-def startpoint_cyberlink(message):
+    content_types=['audio', 'contact', 'document', 'location', 'photo', 'text', 'video', 'video_note', 'voice'])
+def endpoint_cyberlink(message):
     ipfs_hash, error = message_upload_to_ipfs(message)
-    send_ipfs_notification(message, ipfs_hash, error)
+    cyberlink = send_ipfs_notification(message, ipfs_hash, error, message_text=None)
     if ipfs_hash:
+        create_cyberlink(cyberlink_startpoint_ipfs_hash[message.chat.id], ipfs_hash)
         state[message.chat.id] = States.S_STARTPOINT_CYBERLINK
         bot.send_message(
             message.chat.id,
-            'Please send starting point of new cyberLink or press other button.\n'
-            'You may send ipfs hash, url, text, file, photo, video, audio, contact, location, video note and voice.',
+            f'CyberLink created: {cyberlink}\n'
+            f'Please send starting point of new cyberLink or press other button.\n'
+            f'You may send ipfs hash, url, text, file, photo, video, audio, contact, location, video note and voice.',
             parse_mode='HTML',
             reply_markup=BASE_KEYBOARD)
 

@@ -78,18 +78,24 @@ def message_upload_to_ipfs(message):
     return None, None
 
 
-def send_ipfs_notification(message, ipfs_hash, error):
+def send_ipfs_notification(message, ipfs_hash, error, message_text='other content'):
     if ipfs_hash:
         bot.send_message(
             message.chat.id,
-            f'{message.content_type} successfully uploaded\nIPFS Hash: <u>{ipfs_hash}</u>\nIPFS Link: '
-            f'https://ipfs.io/ipfs/{ipfs_hash}\nPlease send other content.\n'
-            f'You may send ipfs hash, url, text, file, photo, video, audio, contact, location, video note and voice.',
+            f'{str(message.content_type).capitalize()} successfully uploaded\n'
+            f'IPFS Hash: <u>{ipfs_hash}</u>\n'
+            f'IPFS Link: https://ipfs.io/ipfs/{ipfs_hash}\n',
             parse_mode='HTML',
             reply_markup=BASE_KEYBOARD)
+        if message_text:
+            bot.send_message(
+                message.chat.id,
+                f'Please send {message_text}.\n'
+                f'You may send ipfs hash, url, text, file, photo, video, audio, contact, location, video note and voice.',
+                reply_markup=BASE_KEYBOARD)
     elif error:
         bot.send_message(
             message.chat.id,
-            f'{message.content_type} not uploaded.\nError: {error}\nPlease send other content.\n'
+            f'{str(message.content_type).capitalize()} not uploaded.\nError: {error}\nPlease send other content.\n'
             f'You may send ipfs hash, url, text, file, photo, video, audio, contact, location, video note and voice.',
             reply_markup=BASE_KEYBOARD)

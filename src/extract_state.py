@@ -16,3 +16,20 @@ def validators_state(shell_query=VALIDATOR_QUERY):
     values = [item[1] for item in validator_data_list[::2]]
     values = list(map(lambda x: 'unjailed' if x == 'false' else 'jailed', values))
     return dict(zip(keys, values))
+
+
+def test_validators_state():
+    assert validators_state(shell_query='cat ./tests/validators_query_test') == \
+           {'blue_blue': 'unjailed',
+            'papsan': 'jailed',
+            'dobry': 'unjailed',
+            'litvintech': 'unjailed',
+            'redbull': 'jailed',
+            'Developer': 'unjailed',
+            'sta': 'jailed',
+            'stardust': 'unjailed',
+            'cyberG': 'unjailed',
+            'eto_piter_detka': 'unjailed',
+            'ParadigmCitadel': 'unjailed',
+            'groovybear': 'unjailed',
+            'space': 'unjailed'}

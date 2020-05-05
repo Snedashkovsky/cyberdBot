@@ -96,6 +96,8 @@ def send_ipfs_notification(message, ipfs_hash, error, message_text='other conten
     elif error:
         bot.send_message(
             message.chat.id,
-            f'{str(message.content_type).capitalize()} not uploaded.\nError: {error}\nPlease send other content.\n'
+            f'{str(message.content_type).capitalize()} not uploaded.\n'
+            f'Error: {error}\n'
+            f'Please send other content.\n'
             f'You may send ipfs hash, url, text, file, photo, video, audio, contact, location, video note and voice.',
             reply_markup=BASE_KEYBOARD)

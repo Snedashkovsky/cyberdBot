@@ -1,6 +1,9 @@
 import os
 from enum import Enum
 from telebot.types import ReplyKeyboardMarkup
+from telebot import TeleBot
+
+from src.sql_utils import SQLighter
 
 # Telegram bot token from BotFather
 TELEBOT_TOKEN = os.getenv('TELEBOT_TOKEN')
@@ -16,6 +19,10 @@ DB_FILE = os.getenv('DB_FILE', 'db_sqlite.vdb')
 
 # IPFS HOST
 IPFS_HOST = os.getenv('IPFS_HOST', 'http://localhost:5001')
+
+bot = TeleBot(TELEBOT_TOKEN)
+
+db_worker = SQLighter(DB_FILE)
 
 # Hourly notifications
 SCHEDULER_TIME = 60 * 60

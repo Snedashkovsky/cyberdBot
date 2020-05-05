@@ -1,13 +1,9 @@
-from telebot import TeleBot
+
 import time
 
 from src.extract_state import validators_state
-from config import TELEBOT_TOKEN, DB_FILE, BASE_KEYBOARD, SCHEDULER_TIME, DEV_MODE
-from src.sql_utils import SQLighter
+from config import BASE_KEYBOARD, SCHEDULER_TIME, DEV_MODE, bot, db_worker
 
-
-bot = TeleBot(TELEBOT_TOKEN)
-db_worker = SQLighter(DB_FILE)
 
 db_worker.create_table_monikers()
 db_worker.create_table_scheduler()

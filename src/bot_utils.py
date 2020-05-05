@@ -1,7 +1,9 @@
 from requests import get
 from telebot import apihelper
+from json import dumps
 
 from src.extract_state import validators_state
+from src.ipfs_utils import upload_text, upload_file
 from config import BASE_KEYBOARD, TELEBOT_TOKEN, db_worker, bot
 
 
@@ -53,16 +55,41 @@ def download_file_from_telegram(message, file_id):
     return
 
 
+def message_upload_to_ipfs(message):
+    if message.content_type == 'text':
+        # TODO add condition for check IPFS Hash
+        if len(message.text) == 32:
+            return message.text, None
+        return upload_text(message.text)
+    elif message.content_type in ('audio', 'video', 'video_note', 'voice'):
+        file_id = message.json[message.content_type]['file_id']
+    elif message.content_type == 'document':
+        file_id = message.document.file_id
+    elif message.content_type in ('location', 'contact'):
+        # TODO change location and contact format for more convenient
+        return upload_text(dumps(message.json[message.content_type]))
+    elif message.content_type == 'photo':
+        file_id = message.json['photo'][-1]['file_id']
+    else:
+        return None, None
+    file_path = download_file_from_telegram(message, file_id)
+    if file_path:
+        return upload_file(file_path)
+    return None, None
+
+
 def send_ipfs_notification(message, ipfs_hash, error):
     if ipfs_hash:
         bot.send_message(
             message.chat.id,
             f'{message.content_type} successfully uploaded\nIPFS Hash: <u>{ipfs_hash}</u>\nIPFS Link: '
-            f'https://ipfs.io/ipfs/{ipfs_hash}\nPlease send other content',
+            f'https://ipfs.io/ipfs/{ipfs_hash}\nPlease send other content.\n'
+            f'You may send ipfs hash, url, text, file, photo, video, audio, contact, location, video note and voice.',
             parse_mode='HTML',
             reply_markup=BASE_KEYBOARD)
-    else:
+    elif error:
         bot.send_message(
             message.chat.id,
-            f'{message.content_type} not uploaded.\nError: {error}\nPlease send other content',
+            f'{message.content_type} not uploaded.\nError: {error}\nPlease send other content.\n'
+            f'You may send ipfs hash, url, text, file, photo, video, audio, contact, location, video note and voice.',
             reply_markup=BASE_KEYBOARD)

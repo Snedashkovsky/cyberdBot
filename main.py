@@ -1,14 +1,10 @@
-from telebot import TeleBot
 from collections import defaultdict
 import time
-from json import dumps
 from os import mkdir
 
-from src.bot_utils import send_ipfs_notification, download_file_from_telegram, jail_check, dict_to_md_list
+from src.bot_utils import send_ipfs_notification, jail_check, dict_to_md_list, message_upload_to_ipfs
 from src.extract_state import validators_state
-from src.ipfs_utils import upload_text, upload_file
 from config import BASE_MENU_LOWER, BASE_KEYBOARD, DEV_MODE, States, bot, db_worker
-
 
 # Create directory for temporary files
 try:
@@ -38,7 +34,6 @@ def pass_unsupported_content_types(message):
 
 @bot.message_handler(content_types=['sticker'])
 def chat_unsupported_content_types(message):
-
     bot.send_message(
         message.chat.id,
         f'Unsupported message type: {message.content_type}',
@@ -46,31 +41,53 @@ def chat_unsupported_content_types(message):
 
 
 @bot.message_handler(
+    func=lambda message: state[message.chat.id] == States.S_UPLOAD_IPFS,
     content_types=['audio', 'contact', 'document', 'location', 'photo', 'video', 'video_note', 'voice'])
 def files_upload_to_ipfs(message):
-    if state[message.chat.id] == States.S_START:
+    ipfs_hash, error = message_upload_to_ipfs(message)
+    send_ipfs_notification(message, ipfs_hash, error)
+
+
+@bot.message_handler(
+    func=lambda message: state[message.chat.id] == States.S_STARTPOINT_CYBERLINK,
+    content_types=['audio', 'contact', 'document', 'location', 'photo', 'video', 'video_note', 'voice'])
+def startpoint_cyberlink(message):
+    ipfs_hash, error = message_upload_to_ipfs(message)
+    send_ipfs_notification(message, ipfs_hash, error)
+    if ipfs_hash:
+        state[message.chat.id] = States.S_ENDPOINT_CYBERLINK
         bot.send_message(
             message.chat.id,
-            'Please press "Upload to IPFS" button for upload this file to IPFS',
+            'Please send endpoint of cyberLink.\n'
+            'You may send ipfs hash, url, text, file, photo, video, audio, contact, location, video note and voice.',
+            parse_mode='HTML',
             reply_markup=BASE_KEYBOARD)
-        return
-    if message.content_type in ('audio', 'video', 'video_note', 'voice'):
-        file_id = message.json[message.content_type]['file_id']
-    elif message.content_type == 'document':
-        file_id = message.document.file_id
-    elif message.content_type in ('location', 'contact'):
-        # TODO change location and contact format for more convenient
-        ipfs_hash, error = upload_text(dumps(message.json[message.content_type]))
-        send_ipfs_notification(message, ipfs_hash, error)
-        return
-    elif message.content_type == 'photo':
-        file_id = message.json['photo'][-1]['file_id']
-    else:
-        return
-    file_path = download_file_from_telegram(message, file_id)
-    if file_path:
-        ipfs_hash, error = upload_file(file_path)
-        send_ipfs_notification(message, ipfs_hash, error)
+
+
+@bot.message_handler(
+    func=lambda message: state[message.chat.id] == States.S_ENDPOINT_CYBERLINK,
+    content_types=['audio', 'contact', 'document', 'location', 'photo', 'video', 'video_note', 'voice'])
+def startpoint_cyberlink(message):
+    ipfs_hash, error = message_upload_to_ipfs(message)
+    send_ipfs_notification(message, ipfs_hash, error)
+    if ipfs_hash:
+        state[message.chat.id] = States.S_STARTPOINT_CYBERLINK
+        bot.send_message(
+            message.chat.id,
+            'Please send starting point of new cyberLink or press other button.\n'
+            'You may send ipfs hash, url, text, file, photo, video, audio, contact, location, video note and voice.',
+            parse_mode='HTML',
+            reply_markup=BASE_KEYBOARD)
+
+
+@bot.message_handler(
+    func=lambda message: state[message.chat.id] == States.S_START,
+    content_types=['audio', 'contact', 'document', 'location', 'photo', 'video', 'video_note', 'voice'])
+def send_message_when_start_state(message):
+    bot.send_message(
+        message.chat.id,
+        'Please press "Create cyberLink" or "Upload to IPFS" button for upload this file',
+        reply_markup=BASE_KEYBOARD)
 
 
 @bot.message_handler(commands=['start'])
@@ -86,7 +103,7 @@ def start_message(message):
                          & (state[message.chat.id] == States.S_UPLOAD_IPFS),
     content_types=['text'])
 def text_upload_to_ipfs(message):
-    ipfs_hash, error = upload_text(message.text)
+    ipfs_hash, error = message_upload_to_ipfs(message)
     send_ipfs_notification(message, ipfs_hash, error)
 
 
@@ -139,7 +156,14 @@ def main_menu(message):
         state[message.chat.id] = States.S_UPLOAD_IPFS
         bot.send_message(
             message.chat.id,
-            'Please send text, file, photo, video, audio, contact, location, video note and voice',
+            'Please send url, text, file, photo, video, audio, contact, location, video note and voice',
+            reply_markup=BASE_KEYBOARD)
+    elif message.text.lower() == 'create cyberlink':
+        state[message.chat.id] = States.S_STARTPOINT_CYBERLINK
+        bot.send_message(
+            message.chat.id,
+            'Please send starting point of cyberLink.\n'
+            'You may send ipfs hash, url, text, file, photo, video, audio, contact, location, video note and voice',
             reply_markup=BASE_KEYBOARD)
 
 

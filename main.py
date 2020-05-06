@@ -4,7 +4,8 @@ from os import mkdir
 
 from src.bot_utils import send_ipfs_notification, jail_check, dict_to_md_list, message_upload_to_ipfs
 from src.bash_utils import validators_state, create_cyberlink
-from config import BASE_MENU_LOWER, BASE_KEYBOARD, DEV_MODE, States, bot, db_worker
+from config import BASE_MENU_LOWER, MONITORING_MENU_LOWER, BASE_KEYBOARD, MONITORING_KEYBOARD, DEV_MODE, States, bot, \
+    db_worker
 
 # Create directory for temporary files
 try:
@@ -92,7 +93,8 @@ def endpoint_cyberlink(message):
             message.chat.id,
             'Please enter a keyword as a starting point for a new cyberLink or choose another service from the menu.\n'
             'You may enter an IPFS hash, URL, text, file, photo, video, audio, contact, location, video or voice.\n'
-            'Please enter a keyword by which your content will be searchable in cyber, this will create the first part of the cyberlink.\n'
+            'Please enter a keyword by which your content will be searchable in cyber, this will create the first part '
+            'of the cyberlink.\n'
             'Please remember to be gentle, the search is case-senstive.',
             reply_markup=BASE_KEYBOARD)
 
@@ -112,7 +114,7 @@ def start_message(message):
     # TODO Update message text
     bot.send_message(
         message.chat.id,
-        'Hello {}! I can create cyberlinks, upload content to IPFS and check monitor validator jail status.'.format(
+        'Hello {}!\nI can create cyberLinks, upload content to IPFS and check monitor validator jail status.'.format(
             message.from_user.username),
         reply_markup=BASE_KEYBOARD)
 
@@ -127,24 +129,15 @@ def text_upload_to_ipfs(message):
 
 
 @bot.message_handler(
-    func=lambda message: message.text.lower() in BASE_MENU_LOWER,
+    func=lambda message: (message.text.lower() in BASE_MENU_LOWER) \
+                         & (state[message.chat.id] in (States.S_START, States.S_STARTPOINT_CYBERLINK,
+                                                       States.S_ENDPOINT_CYBERLINK, States.S_UPLOAD_IPFS)),
     content_types=['text']
 )
 def main_menu(message):
     state[message.chat.id] = States.S_START
-    if message.text.lower() == 'add validator moniker':
-        bot.send_message(
-            message.chat.id,
-            'Enter a validator moniker',
-            reply_markup=BASE_KEYBOARD)
-    elif message.text.lower() == 'jail check':
+    if message.text.lower() == 'jail check':
         jail_check(message.chat.id)
-    elif message.text.lower() == 'reset validator moniker':
-        db_worker.reset_moniker(message.chat.id)
-        bot.send_message(
-            message.chat.id,
-            'Moniker reset. Please add a validators moniker to check their jailed status',
-            reply_markup=BASE_KEYBOARD)
     elif message.text.lower() == 'validator list':
         validators_dict, _ = validators_state()
         bot.send_message(
@@ -152,26 +145,13 @@ def main_menu(message):
             '{}'.format(dict_to_md_list(validators_dict)),
             parse_mode="HTML",
             reply_markup=BASE_KEYBOARD)
-    elif message.text.lower() == 'hourly check':
-        scheduler_state = db_worker.get_scheduler_state(message.chat.id)
-        if scheduler_state == 0:
-            db_worker.set_scheduler_state(message.chat.id, 1)
-            bot.send_message(
-                message.chat.id,
-                'Set hourly jail check',
-                reply_markup=BASE_KEYBOARD)
-            jail_check(message.chat.id)
-            bot.send_message(
-                message.chat.id,
-                'The following notifications will be sent to you hourly',
-                reply_markup=BASE_KEYBOARD)
-        else:
-            db_worker.set_scheduler_state(message.chat.id, 0)
-            bot.send_message(
-                message.chat.id,
-                'Unset hourly jail check',
-                reply_markup=BASE_KEYBOARD)
-    elif message.text.lower() == 'upload to IPFS':
+    elif message.text.lower() == 'jail check settings':
+        state[message.chat.id] = States.S_MONITORING
+        bot.send_message(
+            message.chat.id,
+            'Enter a validator moniker',
+            reply_markup=MONITORING_KEYBOARD)
+    elif message.text.lower() == 'upload to ipfs':
         state[message.chat.id] = States.S_UPLOAD_IPFS
         bot.send_message(
             message.chat.id,
@@ -182,14 +162,70 @@ def main_menu(message):
         bot.send_message(
             message.chat.id,
             'Please enter a keyword as a starting point for a new cyberLink or choose another service from the menu.\n'
-            'You may enter an IPFS hash, URL, text, file, photo, video, audio, contact, location, video or voice.\n'
-            'Please enter a keyword by which your content will be searchable in cyber, this will create the first part of the cyberlink.\n'
-            'Please remember to be gentle, the search is case-senstive.',  
+            'You may enter an text, cyberLink, IPFS hash, URL, file, photo, video, audio, contact, location, video or '
+            'voice.\n'
+            'Please enter a keyword by which your content will be searchable in cyber, this will create the first part '
+            'of the cyberLink.\n'
+            'Please remember to be gentle, the search is case-senstive.',
             reply_markup=BASE_KEYBOARD)
 
 
 @bot.message_handler(
-    func=lambda message: (message.text.lower() not in BASE_MENU_LOWER) & (state[message.chat.id] == States.S_START),
+    func=lambda message: (message.text.lower() in MONITORING_MENU_LOWER) \
+                         & (state[message.chat.id] == States.S_MONITORING),
+    content_types=['text']
+)
+def monitoring_menu(message):
+    if message.text.lower() == 'add validator moniker':
+        bot.send_message(
+            message.chat.id,
+            'Enter a validator moniker',
+            reply_markup=MONITORING_KEYBOARD)
+    elif message.text.lower() == 'jail check':
+        jail_check(message.chat.id)
+    elif message.text.lower() == 'reset validator moniker':
+        db_worker.reset_moniker(message.chat.id)
+        bot.send_message(
+            message.chat.id,
+            'Moniker reset. Please add a validators moniker to check their jailed status',
+            reply_markup=MONITORING_KEYBOARD)
+    elif message.text.lower() == 'validator list':
+        validators_dict, _ = validators_state()
+        bot.send_message(
+            message.chat.id,
+            '{}'.format(dict_to_md_list(validators_dict)),
+            parse_mode="HTML",
+            reply_markup=MONITORING_KEYBOARD)
+    elif message.text.lower() == 'hourly check':
+        scheduler_state = db_worker.get_scheduler_state(message.chat.id)
+        if scheduler_state == 0:
+            db_worker.set_scheduler_state(message.chat.id, 1)
+            bot.send_message(
+                message.chat.id,
+                'Set hourly jail check',
+                reply_markup=MONITORING_KEYBOARD)
+            jail_check(message.chat.id)
+            bot.send_message(
+                message.chat.id,
+                'The following notifications will be sent to you hourly',
+                reply_markup=MONITORING_KEYBOARD)
+        else:
+            db_worker.set_scheduler_state(message.chat.id, 0)
+            bot.send_message(
+                message.chat.id,
+                'Unset hourly jail check',
+                reply_markup=MONITORING_KEYBOARD)
+    elif message.text.lower() == 'back to main':
+        state[message.chat.id] = States.S_START
+        bot.send_message(
+            message.chat.id,
+            'Back to main menu',
+            reply_markup=BASE_KEYBOARD)
+
+
+@bot.message_handler(
+    func=lambda message: (message.text.lower() not in MONITORING_MENU_LOWER) \
+                         & (state[message.chat.id] == States.S_MONITORING),
     content_types=['text'])
 def add_validator_moniker(message):
     moniker = message.text
@@ -200,21 +236,21 @@ def add_validator_moniker(message):
         bot.send_message(
             message.chat.id,
             'This moniker has already been added',
-            reply_markup=BASE_KEYBOARD)
+            reply_markup=MONITORING_KEYBOARD)
         jail_check(message.chat.id)
     elif moniker in validators_dict.keys():
         db_worker.add_moniker(message.chat.id, moniker)
         bot.send_message(
             message.chat.id,
             'The moniker has been added',
-            reply_markup=BASE_KEYBOARD)
+            reply_markup=MONITORING_KEYBOARD)
         jail_check(message.chat.id)
     else:
         bot.send_message(
             message.chat.id,
-            'The moniker you have entered is not in the validator list. Please enter a valid moniker and be gentle, the bot is '
-            'case sensitive',
-            reply_markup=BASE_KEYBOARD)
+            'The moniker you have entered is not in the validator list. Please enter a valid moniker and be gentle, '
+            'the bot is case sensitive',
+            reply_markup=MONITORING_KEYBOARD)
 
 
 if __name__ == '__main__':

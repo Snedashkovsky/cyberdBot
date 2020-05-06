@@ -30,21 +30,30 @@ db_worker = SQLighter(DB_FILE)
 # Hourly notifications
 SCHEDULER_TIME = 60 * 60
 
-# BASE MENU
-BASE_MENU = ['Add validator moniker', 'Reset validator moniker',
-             'Jail check', 'Hourly check', 'Validator list',
-             'Create cyberLink', 'Upload to IPFS']
+# Base Menu
+BASE_MENU = ['Create cyberLink', 'Upload to IPFS',
+             'Jail check', 'Validator list', 'Jail check settings'
+             ]
 BASE_MENU_LOWER = list(map(str.lower, BASE_MENU))
 BASE_KEYBOARD = ReplyKeyboardMarkup(True, True)
 BASE_KEYBOARD.add(BASE_MENU[0], BASE_MENU[1])
 BASE_KEYBOARD.add(BASE_MENU[2], BASE_MENU[3], BASE_MENU[4])
-BASE_KEYBOARD.add(BASE_MENU[5], BASE_MENU[6])
+
+# Jail Monitoring Menu
+MONITORING_MENU = ['Add validator moniker', 'Reset validator moniker',
+                   'Jail check', 'Hourly check', 'Validator list',
+                   'Back to Main']
+MONITORING_MENU_LOWER = list(map(str.lower, MONITORING_MENU))
+MONITORING_KEYBOARD = ReplyKeyboardMarkup(True, True)
+MONITORING_KEYBOARD.add(MONITORING_MENU[0], MONITORING_MENU[1])
+MONITORING_KEYBOARD.add(MONITORING_MENU[2], MONITORING_MENU[3], MONITORING_MENU[4])
+MONITORING_KEYBOARD.add(MONITORING_MENU[5])
 
 
 # default status class
 class States(Enum):
-
-    S_START = 0                 # Start position
-    S_UPLOAD_IPFS = 1           # Upload content to IPFS
+    S_START = 0  # Start position
+    S_UPLOAD_IPFS = 1  # Upload content to IPFS
     S_STARTPOINT_CYBERLINK = 2  # Set starting point of cyberlink
-    S_ENDPOINT_CYBERLINK = 3    # Set endpoint of cyberlink
+    S_ENDPOINT_CYBERLINK = 3  # Set endpoint of cyberlink
+    S_MONITORING = 4  # Jail checker

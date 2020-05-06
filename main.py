@@ -91,8 +91,10 @@ def endpoint_cyberlink(message):
                 reply_markup=BASE_KEYBOARD)
         bot.send_message(
             message.chat.id,
-            'Please send starting point of new cyberLink or press other button.\n'
-            'You may send ipfs hash, url, text, file, photo, video, audio, contact, location, video note and voice.',
+            'Please enter a keyword as a starting point for a new cyberLink or choose another service from the menu.\n'
+            'You may enter an IPFS hash, URL, text, file, photo, video, audio, contact, location, video or voice.\n'
+            'Please enter a keyword by which your content will be searchable in cyber, this will create the first part of the cyberlink.\n'
+            'Please remember to be gentle, the search is case-senstive.',
             reply_markup=BASE_KEYBOARD)
 
 
@@ -102,7 +104,7 @@ def endpoint_cyberlink(message):
 def send_message_when_start_state(message):
     bot.send_message(
         message.chat.id,
-        'Please press "Create cyberLink" or "Upload to IPFS" button for upload this file',
+        'Please press "Create cyberLink" or the "Upload to IPFS" button to upload this file',
         reply_markup=BASE_KEYBOARD)
 
 
@@ -141,7 +143,7 @@ def main_menu(message):
         db_worker.reset_moniker(message.chat.id)
         bot.send_message(
             message.chat.id,
-            'Moniker reset. Please add a validators moniker to check jailed status',
+            'Moniker reset. Please add a validators moniker to check their jailed status',
             reply_markup=BASE_KEYBOARD)
     elif message.text.lower() == 'validator list':
         validators_dict = validators_state()
@@ -161,7 +163,7 @@ def main_menu(message):
             jail_check(message.chat.id)
             bot.send_message(
                 message.chat.id,
-                'The following node status notifications will be sent to you hourly',
+                'The following notifications will be sent to you hourly',
                 reply_markup=BASE_KEYBOARD)
         else:
             db_worker.set_scheduler_state(message.chat.id, 0)
@@ -169,18 +171,20 @@ def main_menu(message):
                 message.chat.id,
                 'Unset hourly jail check',
                 reply_markup=BASE_KEYBOARD)
-    elif message.text.lower() == 'upload to ipfs':
+    elif message.text.lower() == 'upload to IPFS':
         state[message.chat.id] = States.S_UPLOAD_IPFS
         bot.send_message(
             message.chat.id,
-            'Please send url, text, file, photo, video, audio, contact, location, video note and voice',
+            'Please send URL, text, file, photo, video, audio, contact, location, video or voice',
             reply_markup=BASE_KEYBOARD)
     elif message.text.lower() == 'create cyberlink':
         state[message.chat.id] = States.S_STARTPOINT_CYBERLINK
         bot.send_message(
             message.chat.id,
-            'Please send starting point of cyberLink.\n'
-            'You may send ipfs hash, url, text, file, photo, video, audio, contact, location, video note and voice',
+            'Please enter a keyword as a starting point for a new cyberLink or choose another service from the menu.\n'
+            'You may enter an IPFS hash, URL, text, file, photo, video, audio, contact, location, video or voice.\n'
+            'Please enter a keyword by which your content will be searchable in cyber, this will create the first part of the cyberlink.\n'
+            'Please remember to be gentle, the search is case-senstive.',  
             reply_markup=BASE_KEYBOARD)
 
 
@@ -195,7 +199,7 @@ def add_validator_moniker(message):
     if moniker in moniker_list:
         bot.send_message(
             message.chat.id,
-            'The moniker already added',
+            'This moniker has already been added',
             reply_markup=BASE_KEYBOARD)
         jail_check(message.chat.id)
     elif moniker in validators_dict.keys():
@@ -208,7 +212,7 @@ def add_validator_moniker(message):
     else:
         bot.send_message(
             message.chat.id,
-            'The moniker you have entered is not in the list. Please enter a valid moniker and be gentle, the bot is '
+            'The moniker you have entered is not in the validator list. Please enter a valid moniker and be gentle, the bot is '
             'case sensitive',
             reply_markup=BASE_KEYBOARD)
 

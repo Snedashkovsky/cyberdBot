@@ -1,17 +1,11 @@
-from telebot import TeleBot, apihelper
 from collections import defaultdict
 import time
-from requests import get
-from json import dumps
 from os import mkdir
 
-from src.extract_state import validators_state
-from config import TELEBOT_TOKEN, DB_FILE, BASE_MENU_LOWER, BASE_KEYBOARD, DEV_MODE, States
-from src.sql_utils import SQLighter
-from src.ipfs_utils import upload_text, upload_file
-
-bot = TeleBot(TELEBOT_TOKEN)
-db_worker = SQLighter(DB_FILE)
+from src.bot_utils import send_ipfs_notification, jail_check, dict_to_md_list, message_upload_to_ipfs
+from src.bash_utils import validators_state, create_cyberlink
+from config import BASE_MENU_LOWER, MONITORING_MENU_LOWER, BASE_KEYBOARD, MONITORING_KEYBOARD, DEV_MODE, States, bot, \
+    db_worker
 
 # Create directory for temporary files
 try:
@@ -29,69 +23,7 @@ db_worker.create_table_monikers()
 db_worker.create_table_scheduler()
 
 state = defaultdict(lambda: States.S_START, key='some_value')
-
-
-def dict_to_md_list(input_dict):
-    srt_from_dict = ''''''
-    for key in sorted(list(input_dict.keys())):
-        if input_dict[key] == 'jailed':
-            srt_from_dict += f'''- <u><b>{key}: {input_dict[key]} </b></u>\n'''
-            pass
-        else:
-            srt_from_dict += f'''- {key}: {input_dict[key]}\n'''
-    return str(srt_from_dict)
-
-
-def jail_check(chat_id):
-    moniker_list = db_worker.get_moniker(chat_id)
-    moniker_list = moniker_list if moniker_list != [''] else []
-    if len(moniker_list) > 0:
-        validators_dict = validators_state()
-        bot.send_message(
-            chat_id,
-            dict_to_md_list({key: validators_dict[key] for key in moniker_list}),
-            parse_mode='HTML',
-            reply_markup=BASE_KEYBOARD)
-    else:
-        bot.send_message(
-            chat_id,
-            'Please send validator moniker for check it',
-            reply_markup=BASE_KEYBOARD)
-
-
-def download_file_from_telegram(message, file_id):
-    try:
-        file_info = bot.get_file(file_id)
-    except apihelper.ApiException as file_info_exception:
-        print(file_info_exception)
-        bot.send_message(
-            message.chat.id,
-            'Please upload file less than 20 MB',
-            reply_markup=BASE_KEYBOARD)
-        return
-    response = get('https://api.telegram.org/file/bot{0}/{1}'.format(TELEBOT_TOKEN, file_info.file_path))
-    file_path = 'temp/' + file_id
-    if response.status_code == 200:
-        with open(file_path, 'wb') as f:
-            for chunk in response.iter_content(1024):
-                f.write(chunk)
-        return file_path
-    return
-
-
-def send_ipfs_notification(message, ipfs_hash, error):
-    if ipfs_hash:
-        bot.send_message(
-            message.chat.id,
-            f'{message.content_type} successfully uploaded\nIPFS Hash: <u>{ipfs_hash}</u>\nIPFS Link: '
-            f'https://ipfs.io/ipfs/{ipfs_hash}\nPlease send other content',
-            parse_mode='HTML',
-            reply_markup=BASE_KEYBOARD)
-    else:
-        bot.send_message(
-            message.chat.id,
-            f'{message.content_type} not uploaded.\nError: {error}\nPlease send other content',
-            reply_markup=BASE_KEYBOARD)
+cyberlink_startpoint_ipfs_hash = defaultdict(lambda: None, key='some_value')
 
 
 @bot.message_handler(
@@ -104,46 +36,87 @@ def pass_unsupported_content_types(message):
 
 @bot.message_handler(content_types=['sticker'])
 def chat_unsupported_content_types(message):
-
     bot.send_message(
         message.chat.id,
         f'Unsupported message type: {message.content_type}',
         reply_markup=BASE_KEYBOARD)
 
 
-@bot.message_handler(
-    content_types=['audio', 'contact', 'document', 'location', 'photo', 'video', 'video_note', 'voice'])
-def files_upload_to_ipfs(message):
-    if state[message.chat.id] == States.S_START:
-        bot.send_message(
-            message.chat.id,
-            'Please press "Upload to IPFS" button for upload this file to IPFS',
-            reply_markup=BASE_KEYBOARD)
-        return
-    if message.content_type in ('audio', 'video', 'video_note', 'voice'):
-        file_id = message.json[message.content_type]['file_id']
-    elif message.content_type == 'document':
-        file_id = message.document.file_id
-    elif message.content_type in ('location', 'contact'):
-        # TODO change location and contact format for more convenient
-        ipfs_hash, error = upload_text(dumps(message.json[message.content_type]))
-        send_ipfs_notification(message, ipfs_hash, error)
-        return
-    elif message.content_type == 'photo':
-        file_id = message.json['photo'][-1]['file_id']
-    else:
-        return
-    file_path = download_file_from_telegram(message, file_id)
-    if file_path:
-        ipfs_hash, error = upload_file(file_path)
-        send_ipfs_notification(message, ipfs_hash, error)
-
-
 @bot.message_handler(commands=['start'])
 def start_message(message):
+    state[message.chat.id] = States.S_START
+    # TODO Update message text
     bot.send_message(
         message.chat.id,
-        'Hello {}! Please add a validator moniker'.format(message.from_user.username),
+        'Hello {}!\nI can create cyberLinks, upload content to IPFS and check monitor validator jail status.'.format(
+            message.from_user.username),
+        reply_markup=BASE_KEYBOARD)
+
+
+@bot.message_handler(
+    func=lambda message: state[message.chat.id] == States.S_UPLOAD_IPFS,
+    content_types=['audio', 'contact', 'document', 'location', 'photo', 'video', 'video_note', 'voice'])
+def files_upload_to_ipfs(message):
+    ipfs_hash, error = message_upload_to_ipfs(message)
+    send_ipfs_notification(message, ipfs_hash, error, add_ipfs=True)
+
+
+@bot.message_handler(
+    func=lambda message: state[message.chat.id] == States.S_STARTPOINT_CYBERLINK,
+    content_types=['audio', 'contact', 'document', 'location', 'photo', 'text', 'video', 'video_note', 'voice'])
+def startpoint_cyberlink(message):
+    ipfs_hash, error = message_upload_to_ipfs(message)
+    send_ipfs_notification(message, ipfs_hash, error, message_text='endpoint of cyberLink')
+    if ipfs_hash:
+        cyberlink_startpoint_ipfs_hash[message.chat.id] = ipfs_hash
+        state[message.chat.id] = States.S_ENDPOINT_CYBERLINK
+
+
+@bot.message_handler(
+    func=lambda message: state[message.chat.id] == States.S_ENDPOINT_CYBERLINK,
+    content_types=['audio', 'contact', 'document', 'location', 'photo', 'text', 'video', 'video_note', 'voice'])
+def endpoint_cyberlink(message):
+    ipfs_hash, ipfs_error = message_upload_to_ipfs(message)
+    send_ipfs_notification(message, ipfs_hash, ipfs_error, message_text=None)
+    if ipfs_hash:
+        state[message.chat.id] = States.S_STARTPOINT_CYBERLINK
+        cyberlink_hash, cyberlink_error = create_cyberlink(cyberlink_startpoint_ipfs_hash[message.chat.id], ipfs_hash)
+        if cyberlink_hash:
+            bot.send_message(
+                message.chat.id,
+                f'CyberLink created: https://cyber.page/network/euler/tx/{cyberlink_hash} \n'
+                f'Transaction hash: <u>{cyberlink_hash}</u> ',
+                parse_mode='HTML',
+                reply_markup=BASE_KEYBOARD)
+            bot.send_message(
+                message.chat.id,
+                f'from: https://ipfs.io/ipfs/{cyberlink_startpoint_ipfs_hash[message.chat.id]}\n'
+                f'to: https://ipfs.io/ipfs/{ipfs_hash}',
+                parse_mode='HTML',
+                reply_markup=BASE_KEYBOARD)
+        elif cyberlink_error:
+            bot.send_message(
+                message.chat.id,
+                f'CyberLink not created\n'
+                f'error: {cyberlink_error}',
+                reply_markup=BASE_KEYBOARD)
+        bot.send_message(
+            message.chat.id,
+            'Please enter a keyword as a starting point for a new cyberLink or choose another service from the menu.\n'
+            'You may enter an IPFS hash, URL, text, file, photo, video, audio, contact, location, video or voice.\n'
+            'Please enter a keyword by which your content will be searchable in cyber, this will create the first part '
+            'of the cyberlink.\n'
+            'Please remember to be gentle, the search is case-senstive.',
+            reply_markup=BASE_KEYBOARD)
+
+
+@bot.message_handler(
+    func=lambda message: state[message.chat.id] == States.S_START,
+    content_types=['audio', 'contact', 'document', 'location', 'photo', 'video', 'video_note', 'voice'])
+def send_message_when_start_state(message):
+    bot.send_message(
+        message.chat.id,
+        'Please press "Create cyberLink" or the "Upload to IPFS" button to upload this file',
         reply_markup=BASE_KEYBOARD)
 
 
@@ -152,36 +125,78 @@ def start_message(message):
                          & (state[message.chat.id] == States.S_UPLOAD_IPFS),
     content_types=['text'])
 def text_upload_to_ipfs(message):
-    ipfs_hash, error = upload_text(message.text)
-    send_ipfs_notification(message, ipfs_hash, error)
+    ipfs_hash, error = message_upload_to_ipfs(message)
+    send_ipfs_notification(message, ipfs_hash, error, add_ipfs=True)
 
 
 @bot.message_handler(
-    func=lambda message: message.text.lower() in BASE_MENU_LOWER,
+    func=lambda message: (message.text.lower() in BASE_MENU_LOWER) \
+                         & (state[message.chat.id] in (States.S_START, States.S_STARTPOINT_CYBERLINK,
+                                                       States.S_ENDPOINT_CYBERLINK, States.S_UPLOAD_IPFS)),
     content_types=['text']
 )
 def main_menu(message):
     state[message.chat.id] = States.S_START
+    if message.text.lower() == 'jail check':
+        jail_check(message.chat.id)
+    elif message.text.lower() == 'validator list':
+        validators_dict, _ = validators_state()
+        bot.send_message(
+            message.chat.id,
+            '{}'.format(dict_to_md_list(validators_dict)),
+            parse_mode="HTML",
+            reply_markup=BASE_KEYBOARD)
+    elif message.text.lower() == 'jail check settings':
+        state[message.chat.id] = States.S_MONITORING
+        bot.send_message(
+            message.chat.id,
+            'Enter a validator moniker',
+            reply_markup=MONITORING_KEYBOARD)
+    elif message.text.lower() == 'upload to ipfs':
+        state[message.chat.id] = States.S_UPLOAD_IPFS
+        bot.send_message(
+            message.chat.id,
+            'Please send URL, text, file, photo, video, audio, contact, location, video or voice',
+            reply_markup=BASE_KEYBOARD)
+    elif message.text.lower() == 'create cyberlink':
+        state[message.chat.id] = States.S_STARTPOINT_CYBERLINK
+        bot.send_message(
+            message.chat.id,
+            'Please enter a keyword as a starting point for a new cyberLink or choose another service from the menu.\n'
+            'You may enter an text, cyberLink, IPFS hash, URL, file, photo, video, audio, contact, location, video or '
+            'voice.\n'
+            'Please enter a keyword by which your content will be searchable in cyber, this will create the first part '
+            'of the cyberLink.\n'
+            'Please remember to be gentle, the search is case-senstive.',
+            reply_markup=BASE_KEYBOARD)
+
+
+@bot.message_handler(
+    func=lambda message: (message.text.lower() in MONITORING_MENU_LOWER) \
+                         & (state[message.chat.id] == States.S_MONITORING),
+    content_types=['text']
+)
+def monitoring_menu(message):
     if message.text.lower() == 'add validator moniker':
         bot.send_message(
             message.chat.id,
             'Enter a validator moniker',
-            reply_markup=BASE_KEYBOARD)
+            reply_markup=MONITORING_KEYBOARD)
     elif message.text.lower() == 'jail check':
         jail_check(message.chat.id)
     elif message.text.lower() == 'reset validator moniker':
         db_worker.reset_moniker(message.chat.id)
         bot.send_message(
             message.chat.id,
-            'Moniker reset. Please add a validators moniker to check jailed status',
-            reply_markup=BASE_KEYBOARD)
+            'Moniker reset. Please add a validators moniker to check their jailed status',
+            reply_markup=MONITORING_KEYBOARD)
     elif message.text.lower() == 'validator list':
-        validators_dict = validators_state()
+        validators_dict, _ = validators_state()
         bot.send_message(
             message.chat.id,
             '{}'.format(dict_to_md_list(validators_dict)),
             parse_mode="HTML",
-            reply_markup=BASE_KEYBOARD)
+            reply_markup=MONITORING_KEYBOARD)
     elif message.text.lower() == 'hourly check':
         scheduler_state = db_worker.get_scheduler_state(message.chat.id)
         if scheduler_state == 0:
@@ -189,53 +204,54 @@ def main_menu(message):
             bot.send_message(
                 message.chat.id,
                 'Set hourly jail check',
-                reply_markup=BASE_KEYBOARD)
-            jail_check(message.chat.id)
+                reply_markup=MONITORING_KEYBOARD)
             bot.send_message(
                 message.chat.id,
-                'The following node status notifications will be sent to you hourly',
-                reply_markup=BASE_KEYBOARD)
+                'The following notifications will be sent to you hourly',
+                reply_markup=MONITORING_KEYBOARD)
+            jail_check(message.chat.id)
         else:
             db_worker.set_scheduler_state(message.chat.id, 0)
             bot.send_message(
                 message.chat.id,
                 'Unset hourly jail check',
-                reply_markup=BASE_KEYBOARD)
-    elif message.text.lower() == 'upload to ipfs':
-        state[message.chat.id] = States.S_UPLOAD_IPFS
+                reply_markup=MONITORING_KEYBOARD)
+    elif message.text.lower() == 'back to main':
+        state[message.chat.id] = States.S_START
         bot.send_message(
             message.chat.id,
-            'Please send text, file, photo, video, audio, contact, location, video note and voice',
+            'Main Menu',
             reply_markup=BASE_KEYBOARD)
 
 
 @bot.message_handler(
-    func=lambda message: (message.text.lower() not in BASE_MENU_LOWER) & (state[message.chat.id] == States.S_START),
+    func=lambda message: (message.text.lower() not in MONITORING_MENU_LOWER) \
+                         & (state[message.chat.id] == States.S_MONITORING),
     content_types=['text'])
 def add_validator_moniker(message):
     moniker = message.text
     moniker_list = db_worker.get_moniker(message.chat.id)
-    validators_dict = validators_state()
+    validators_dict, _ = validators_state()
 
     if moniker in moniker_list:
         bot.send_message(
             message.chat.id,
-            'The moniker already added',
-            reply_markup=BASE_KEYBOARD)
+            'This moniker has already been added',
+            reply_markup=MONITORING_KEYBOARD)
         jail_check(message.chat.id)
     elif moniker in validators_dict.keys():
         db_worker.add_moniker(message.chat.id, moniker)
         bot.send_message(
             message.chat.id,
             'The moniker has been added',
-            reply_markup=BASE_KEYBOARD)
+            reply_markup=MONITORING_KEYBOARD)
         jail_check(message.chat.id)
     else:
         bot.send_message(
             message.chat.id,
-            'The moniker you have entered is not in the list. Please enter a valid moniker and be gentle, the bot is '
-            'case sensitive',
-            reply_markup=BASE_KEYBOARD)
+            'The moniker you have entered is not in the validator list.\n'
+            'Please enter a valid moniker and be gentle, the bot is case sensitive',
+            reply_markup=MONITORING_KEYBOARD)
 
 
 if __name__ == '__main__':

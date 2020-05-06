@@ -205,11 +205,11 @@ def monitoring_menu(message):
                 message.chat.id,
                 'Set hourly jail check',
                 reply_markup=MONITORING_KEYBOARD)
-            jail_check(message.chat.id)
             bot.send_message(
                 message.chat.id,
                 'The following notifications will be sent to you hourly',
                 reply_markup=MONITORING_KEYBOARD)
+            jail_check(message.chat.id)
         else:
             db_worker.set_scheduler_state(message.chat.id, 0)
             bot.send_message(
@@ -220,7 +220,7 @@ def monitoring_menu(message):
         state[message.chat.id] = States.S_START
         bot.send_message(
             message.chat.id,
-            'Back to main menu',
+            'Main Menu',
             reply_markup=BASE_KEYBOARD)
 
 
@@ -249,8 +249,8 @@ def add_validator_moniker(message):
     else:
         bot.send_message(
             message.chat.id,
-            'The moniker you have entered is not in the validator list. Please enter a valid moniker and be gentle, '
-            'the bot is case sensitive',
+            'The moniker you have entered is not in the validator list.\n'
+            'Please enter a valid moniker and be gentle, the bot is case sensitive',
             reply_markup=MONITORING_KEYBOARD)
 
 

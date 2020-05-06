@@ -11,6 +11,9 @@ TELEBOT_TOKEN = os.getenv('TELEBOT_TOKEN')
 # Shell query for get validators state data
 VALIDATOR_QUERY = os.getenv('VALIDATOR_QUERY', 'cyberdcli query staking validators --trust-node=true')
 
+# Shell query for get validators state data
+CYBERLINK_CREATION_QUERY = os.getenv('CYBERLINK_CREATION_QUERY', './src/create_cyberlink.sh')
+
 # Development mode for easy bot stop
 DEV_MODE = int(os.getenv('DEV_MODE', 0))
 

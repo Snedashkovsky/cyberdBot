@@ -1,7 +1,7 @@
 
 import time
 
-from src.extract_state import validators_state
+from src.bash_utils import validators_state
 from config import BASE_KEYBOARD, SCHEDULER_TIME, DEV_MODE, bot, db_worker
 
 
@@ -23,7 +23,7 @@ def dict_to_md_list(input_dict):
 def jail_check(chat_id):
     moniker = db_worker.get_moniker(chat_id)
     if len(moniker) > 0:
-        validators_dict = validators_state()
+        validators_dict, _ = validators_state()
         bot.send_message(
             chat_id,
             dict_to_md_list({key: validators_dict[key] for key in moniker}),

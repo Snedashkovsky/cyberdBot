@@ -2,7 +2,7 @@ from requests import get
 from telebot import apihelper
 from json import dumps
 
-from src.extract_state import validators_state
+from src.bash_utils import validators_state
 from src.ipfs_utils import upload_text, upload_file
 from config import BASE_KEYBOARD, TELEBOT_TOKEN, db_worker, bot
 
@@ -22,7 +22,7 @@ def jail_check(chat_id):
     moniker_list = db_worker.get_moniker(chat_id)
     moniker_list = moniker_list if moniker_list != [''] else []
     if len(moniker_list) > 0:
-        validators_dict = validators_state()
+        validators_dict, _ = validators_state()
         bot.send_message(
             chat_id,
             dict_to_md_list({key: validators_dict[key] for key in moniker_list}),
@@ -60,7 +60,7 @@ def message_upload_to_ipfs(message):
         # TODO add condition for check IPFS Hash
         if len(message.text) == 46:
             return message.text, None
-        return upload_text(message.text)
+        return upload_text(message.text.lower())
     elif message.content_type in ('audio', 'video', 'video_note', 'voice'):
         file_id = message.json[message.content_type]['file_id']
     elif message.content_type == 'document':

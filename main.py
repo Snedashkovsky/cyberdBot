@@ -3,8 +3,7 @@ import time
 from os import mkdir
 
 from src.bot_utils import send_ipfs_notification, jail_check, dict_to_md_list, message_upload_to_ipfs
-from src.cyberd_utils import create_cyberlink
-from src.extract_state import validators_state
+from src.bash_utils import validators_state, create_cyberlink
 from config import BASE_MENU_LOWER, BASE_KEYBOARD, DEV_MODE, States, bot, db_worker
 
 # Create directory for temporary files
@@ -73,8 +72,8 @@ def endpoint_cyberlink(message):
         if cyberlink_hash:
             bot.send_message(
                 message.chat.id,
-                f'CyberLink created: https://cyber.page/network/euler/tx/{cyberlink_hash}\n'
-                f'Transaction hash: <u>{cyberlink_hash}</u>',
+                f'CyberLink created: https://cyber.page/network/euler/tx/{cyberlink_hash} \n'
+                f'Transaction hash: <u>{cyberlink_hash}</u> ',
                 parse_mode='HTML',
                 reply_markup=BASE_KEYBOARD)
             bot.send_message(
@@ -113,7 +112,8 @@ def start_message(message):
     # TODO Update message text
     bot.send_message(
         message.chat.id,
-        'Hello {}! Please add a validator moniker'.format(message.from_user.username),
+        'Hello {}! I can create cyberlinks, upload content to IPFS and check monitor validator jail status.'.format(
+            message.from_user.username),
         reply_markup=BASE_KEYBOARD)
 
 
@@ -146,7 +146,7 @@ def main_menu(message):
             'Moniker reset. Please add a validators moniker to check their jailed status',
             reply_markup=BASE_KEYBOARD)
     elif message.text.lower() == 'validator list':
-        validators_dict = validators_state()
+        validators_dict, _ = validators_state()
         bot.send_message(
             message.chat.id,
             '{}'.format(dict_to_md_list(validators_dict)),
@@ -194,7 +194,7 @@ def main_menu(message):
 def add_validator_moniker(message):
     moniker = message.text
     moniker_list = db_worker.get_moniker(message.chat.id)
-    validators_dict = validators_state()
+    validators_dict, _ = validators_state()
 
     if moniker in moniker_list:
         bot.send_message(

@@ -4,6 +4,8 @@ SERVICE=$1
 MODE=$2
 
 export TELEBOT_TOKEN= # your bot token
+export CYBERD_KEY_NAME= # your cyberd key name
+export CYBERD_PASS= # your cyberd passphrase
 
 # Check for Development Mode
 case "$MODE" in

@@ -54,7 +54,8 @@ def start_message(message):
 
 
 @bot.message_handler(
-    func=lambda message: state[message.chat.id] == States.S_UPLOAD_IPFS,
+    func=lambda message: (message.text.lower() not in BASE_MENU_LOWER) \
+                         & (state[message.chat.id] == States.S_UPLOAD_IPFS),
     content_types=['audio', 'contact', 'document', 'location', 'photo', 'video', 'video_note', 'voice'])
 def files_upload_to_ipfs(message):
     ipfs_hash, error = message_upload_to_ipfs(message)

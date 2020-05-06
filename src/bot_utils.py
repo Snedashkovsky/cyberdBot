@@ -31,7 +31,7 @@ def jail_check(chat_id):
     else:
         bot.send_message(
             chat_id,
-            'Please send validator moniker for check it',
+            'Please send a validator moniker so I can check it',
             reply_markup=BASE_KEYBOARD)
 
 
@@ -42,7 +42,7 @@ def download_file_from_telegram(message, file_id):
         print(file_info_exception)
         bot.send_message(
             message.chat.id,
-            'Please upload file less than 20 MB',
+            'Please upload a file smaller than 20 MB',
             reply_markup=BASE_KEYBOARD)
         return
     response = get('https://api.telegram.org/file/bot{0}/{1}'.format(TELEBOT_TOKEN, file_info.file_path))
@@ -91,7 +91,7 @@ def send_ipfs_notification(message, ipfs_hash, error, message_text='other conten
             bot.send_message(
                 message.chat.id,
                 f'Please send {message_text}.\n'
-                f'You may send ipfs hash, url, text, file, photo, video, audio, contact, location, video note and voice.',
+                f'You may send an IPFS hash, URL, text, file, photo, video, audio, contact, location, video or voice.',
                 reply_markup=BASE_KEYBOARD)
     elif error:
         bot.send_message(
@@ -99,5 +99,5 @@ def send_ipfs_notification(message, ipfs_hash, error, message_text='other conten
             f'{str(message.content_type).capitalize()} not uploaded.\n'
             f'Error: {error}\n'
             f'Please send other content.\n'
-            f'You may send ipfs hash, url, text, file, photo, video, audio, contact, location, video note and voice.',
+            f'You may send an IPFS hash, URL, text, file, photo, video, audio, contact, location, video or voice.',
             reply_markup=BASE_KEYBOARD)

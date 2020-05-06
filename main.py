@@ -42,6 +42,17 @@ def chat_unsupported_content_types(message):
         reply_markup=BASE_KEYBOARD)
 
 
+@bot.message_handler(commands=['start'])
+def start_message(message):
+    state[message.chat.id] = States.S_START
+    # TODO Update message text
+    bot.send_message(
+        message.chat.id,
+        'Hello {}!\nI can create cyberLinks, upload content to IPFS and check monitor validator jail status.'.format(
+            message.from_user.username),
+        reply_markup=BASE_KEYBOARD)
+
+
 @bot.message_handler(
     func=lambda message: state[message.chat.id] == States.S_UPLOAD_IPFS,
     content_types=['audio', 'contact', 'document', 'location', 'photo', 'video', 'video_note', 'voice'])
@@ -106,16 +117,6 @@ def send_message_when_start_state(message):
     bot.send_message(
         message.chat.id,
         'Please press "Create cyberLink" or the "Upload to IPFS" button to upload this file',
-        reply_markup=BASE_KEYBOARD)
-
-
-@bot.message_handler(commands=['start'])
-def start_message(message):
-    # TODO Update message text
-    bot.send_message(
-        message.chat.id,
-        'Hello {}!\nI can create cyberLinks, upload content to IPFS and check monitor validator jail status.'.format(
-            message.from_user.username),
         reply_markup=BASE_KEYBOARD)
 
 

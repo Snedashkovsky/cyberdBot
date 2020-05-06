@@ -78,7 +78,7 @@ def message_upload_to_ipfs(message):
     return None, None
 
 
-def send_ipfs_notification(message, ipfs_hash, error, message_text='other content'):
+def send_ipfs_notification(message, ipfs_hash, error, message_text='other content', add_ipfs=False):
     if ipfs_hash:
         bot.send_message(
             message.chat.id,
@@ -91,7 +91,8 @@ def send_ipfs_notification(message, ipfs_hash, error, message_text='other conten
             bot.send_message(
                 message.chat.id,
                 f'Please send {message_text}.\n'
-                f'You may send an IPFS hash, URL, text, file, photo, video, audio, contact, location, video or voice.',
+                f'You may send an text, cyberLink, {"" if add_ipfs else "IPFS hash, "}URL, file, photo, video, audio, '
+                f'contact, location, video or voice.',
                 reply_markup=BASE_KEYBOARD)
     elif error:
         bot.send_message(
@@ -99,5 +100,6 @@ def send_ipfs_notification(message, ipfs_hash, error, message_text='other conten
             f'{str(message.content_type).capitalize()} not uploaded.\n'
             f'Error: {error}\n'
             f'Please send other content.\n'
-            f'You may send an IPFS hash, URL, text, file, photo, video, audio, contact, location, video or voice.',
+            f'You may send an text, cyberLink, {"" if add_ipfs else "IPFS hash, "}URL, file, photo, video, audio, '
+            f'contact, location, video or voice.',
             reply_markup=BASE_KEYBOARD)

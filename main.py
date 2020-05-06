@@ -58,7 +58,7 @@ def start_message(message):
     content_types=['audio', 'contact', 'document', 'location', 'photo', 'video', 'video_note', 'voice'])
 def files_upload_to_ipfs(message):
     ipfs_hash, error = message_upload_to_ipfs(message)
-    send_ipfs_notification(message, ipfs_hash, error)
+    send_ipfs_notification(message, ipfs_hash, error, add_ipfs=True)
 
 
 @bot.message_handler(
@@ -126,7 +126,7 @@ def send_message_when_start_state(message):
     content_types=['text'])
 def text_upload_to_ipfs(message):
     ipfs_hash, error = message_upload_to_ipfs(message)
-    send_ipfs_notification(message, ipfs_hash, error)
+    send_ipfs_notification(message, ipfs_hash, error, add_ipfs=True)
 
 
 @bot.message_handler(

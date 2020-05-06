@@ -1,6 +1,4 @@
 Enter keyring passphrase:
-incorrect passphrase
-Enter keyring passphrase:
 {"chain_id":"euler-6","account_number":"15","sequence":"12","fee":{"amount":[],"gas":"200000"},"msgs":[{"type":"cyber/Link","value":{"address":"cyber177y7sqkxmvl22j632haf8y9gv0j3weds5c8qrj","links":[{"from":"QmcpotVA5HSXtic3qmVCdjfBftLEMmzxZ9RNiXLpjQkQGy","to":"QmcycrBPHEE47WgdYAigWsCHfgtVi9X9xVCEDuidV4UYCC"}]}}],"memo":""}
 
 confirm transaction before signing and broadcasting [y/N]: y

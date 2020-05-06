@@ -62,7 +62,8 @@ def files_upload_to_ipfs(message):
 
 
 @bot.message_handler(
-    func=lambda message: state[message.chat.id] == States.S_STARTPOINT_CYBERLINK,
+    func=lambda message: (message.text.lower() not in BASE_MENU_LOWER) \
+                         & (state[message.chat.id] == States.S_STARTPOINT_CYBERLINK),
     content_types=['audio', 'contact', 'document', 'location', 'photo', 'text', 'video', 'video_note', 'voice'])
 def startpoint_cyberlink(message):
     ipfs_hash, error = message_upload_to_ipfs(message)
@@ -73,7 +74,8 @@ def startpoint_cyberlink(message):
 
 
 @bot.message_handler(
-    func=lambda message: state[message.chat.id] == States.S_ENDPOINT_CYBERLINK,
+    func=lambda message: (message.text.lower() not in BASE_MENU_LOWER) \
+                         & (state[message.chat.id] == States.S_ENDPOINT_CYBERLINK),
     content_types=['audio', 'contact', 'document', 'location', 'photo', 'text', 'video', 'video_note', 'voice'])
 def endpoint_cyberlink(message):
     ipfs_hash, ipfs_error = message_upload_to_ipfs(message)

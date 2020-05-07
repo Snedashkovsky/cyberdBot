@@ -54,8 +54,7 @@ def start_message(message):
 
 
 @bot.message_handler(
-    func=lambda message: (message.text.lower() not in BASE_MENU_LOWER) \
-                         & (state[message.chat.id] == States.S_UPLOAD_IPFS),
+    func=lambda message: state[message.chat.id] == States.S_UPLOAD_IPFS,
     content_types=['audio', 'contact', 'document', 'location', 'photo', 'video', 'video_note', 'voice'])
 def files_upload_to_ipfs(message):
     ipfs_hash, error = message_upload_to_ipfs(message)
@@ -63,9 +62,11 @@ def files_upload_to_ipfs(message):
 
 
 @bot.message_handler(
-    func=lambda message: (message.text.lower() not in BASE_MENU_LOWER) \
-                         & (state[message.chat.id] == States.S_STARTPOINT_CYBERLINK),
-    content_types=['audio', 'contact', 'document', 'location', 'photo', 'text', 'video', 'video_note', 'voice'])
+    func=lambda message: (((message.content_type == 'text') and (message.text.lower() not in BASE_MENU_LOWER)) or \
+                          (message.content_type in ('audio', 'contact', 'document', 'location',
+                                                    'photo', 'video', 'video_note', 'voice'))) \
+                         and (state[message.chat.id] == States.S_STARTPOINT_CYBERLINK),
+    content_types=['text', 'audio', 'contact', 'document', 'location', 'photo', 'video', 'video_note', 'voice'])
 def startpoint_cyberlink(message):
     ipfs_hash, error = message_upload_to_ipfs(message)
     send_ipfs_notification(message, ipfs_hash, error, message_text='endpoint of cyberLink')
@@ -75,7 +76,9 @@ def startpoint_cyberlink(message):
 
 
 @bot.message_handler(
-    func=lambda message: (message.text.lower() not in BASE_MENU_LOWER) \
+    func=lambda message: (((message.content_type == 'text') and (message.text.lower() not in BASE_MENU_LOWER)) or \
+                          (message.content_type in ('audio', 'contact', 'document', 'location',
+                                                    'photo', 'video', 'video_note', 'voice'))) \
                          & (state[message.chat.id] == States.S_ENDPOINT_CYBERLINK),
     content_types=['audio', 'contact', 'document', 'location', 'photo', 'text', 'video', 'video_note', 'voice'])
 def endpoint_cyberlink(message):
@@ -83,7 +86,9 @@ def endpoint_cyberlink(message):
     send_ipfs_notification(message, ipfs_hash, ipfs_error, message_text=None)
     if ipfs_hash:
         state[message.chat.id] = States.S_STARTPOINT_CYBERLINK
-        cyberlink_hash, cyberlink_error = create_cyberlink(cyberlink_startpoint_ipfs_hash[message.chat.id], ipfs_hash)
+        cyberlink_hash, cyberlink_error = \
+            create_cyberlink(from_hash=cyberlink_startpoint_ipfs_hash[message.chat.id],
+                             to_hash=ipfs_hash)
         if cyberlink_hash:
             bot.send_message(
                 message.chat.id,

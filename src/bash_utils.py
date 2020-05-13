@@ -9,11 +9,11 @@ def execute_bash(bash_command):
 
 
 def validators_state(shell_query=VALIDATOR_QUERY):
-    output, error_execute_bash = execute_bash(shell_query)
-    if error_execute_bash:
-        print(error_execute_bash)
-        return None, error_execute_bash
     try:
+        output, error_execute_bash = execute_bash(shell_query)
+        if error_execute_bash:
+            print(error_execute_bash)
+            return None, error_execute_bash
         validator_data_list = [item.replace(' ', '').split(':') for item in str(output).split('\\n')]
         validator_data_list = [item for item in validator_data_list if item[0] in ('jailed', 'moniker')]
         keys = [item[1] for item in validator_data_list[1::2]]

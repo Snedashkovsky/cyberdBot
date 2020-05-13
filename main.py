@@ -177,6 +177,12 @@ def main_menu(message):
             'of the cyberLink.\n'
             'Please remember to be gentle, the search is case-senstive.',
             reply_markup=BASE_KEYBOARD)
+    elif message.text.lower() == 'sign up':
+        state[message.chat.id] = States.S_SIGNUP
+        bot.send_message(
+            message.chat.id,
+            'Please enter a name of a cyberd account you want to create',
+            reply_markup=BASE_KEYBOARD)
 
 
 @bot.message_handler(

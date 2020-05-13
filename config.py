@@ -31,13 +31,13 @@ db_worker = SQLighter(DB_FILE)
 SCHEDULER_TIME = 60 * 60
 
 # Base Menu
-BASE_MENU = ['Create cyberLink', 'Upload to IPFS',
+BASE_MENU = ['Create cyberLink', 'Upload to IPFS', 'Sign up',
              'Jail check', 'Validator list', 'Jail check settings'
              ]
 BASE_MENU_LOWER = list(map(str.lower, BASE_MENU))
 BASE_KEYBOARD = ReplyKeyboardMarkup(True, True)
-BASE_KEYBOARD.add(BASE_MENU[0], BASE_MENU[1])
-BASE_KEYBOARD.add(BASE_MENU[2], BASE_MENU[3], BASE_MENU[4])
+BASE_KEYBOARD.add(BASE_MENU[0], BASE_MENU[1], BASE_MENU[2])
+BASE_KEYBOARD.add(BASE_MENU[3], BASE_MENU[4], BASE_MENU[5])
 
 # Jail Monitoring Menu
 MONITORING_MENU = ['Add validator moniker', 'Reset validator moniker',
@@ -57,3 +57,4 @@ class States(Enum):
     S_STARTPOINT_CYBERLINK = 2  # Set starting point of cyberlink
     S_ENDPOINT_CYBERLINK = 3  # Set endpoint of cyberlink
     S_MONITORING = 4  # Jail checker
+    S_SIGNUP = 5  # Sign up new cyberd account

@@ -3,7 +3,7 @@ import time
 from os import mkdir
 
 from src.bot_utils import send_ipfs_notification, jail_check, dict_to_md_list, message_upload_to_ipfs
-from src.bash_utils import validators_state, create_cyberlink
+from src.bash_utils import validators_state, create_cyberlink, create_account
 from config import BASE_MENU_LOWER, MONITORING_MENU_LOWER, BASE_KEYBOARD, MONITORING_KEYBOARD, DEV_MODE, States, bot, \
     db_worker
 
@@ -266,6 +266,28 @@ def add_validator_moniker(message):
             'The moniker you have entered is not in the validator list.\n'
             'Please enter a valid moniker and be gentle, the bot is case sensitive',
             reply_markup=MONITORING_KEYBOARD)
+
+
+@bot.message_handler(
+    func=lambda message: (message.text.lower() not in BASE_MENU_LOWER) \
+                         & (state[message.chat.id] == States.S_SIGNUP),
+    content_types=['text'])
+def add_validator_moniker(message):
+    account = message.text
+    account_data, create_account_error = create_account(account)
+    if account_data:
+        bot.send_message(
+            message.chat.id,
+            f'Account {account_data.name} created\n'
+            f'passphrase: {account_data.passphrase}'
+            f'password: {account_data.password}',
+            reply_markup=BASE_KEYBOARD)
+    else:
+        bot.send_message(
+            message.chat.id,
+            f'Account not created\n'
+            f'error: {create_account_error}',
+            reply_markup=BASE_KEYBOARD)
 
 
 if __name__ == '__main__':

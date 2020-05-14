@@ -1,6 +1,8 @@
 from subprocess import Popen, PIPE
+import string
+import random
 
-from config import VALIDATOR_QUERY, CYBERLINK_CREATION_QUERY
+from config import VALIDATOR_QUERY, CYBERLINK_CREATION_QUERY, ACCOUNT_CREATION_QUERY
 
 
 def execute_bash(bash_command):
@@ -63,5 +65,21 @@ def test_create_cyberlink():
     assert tx_hash == 'C97489299E9FE23FDE5F85AF85C076D869648577A9EE914E5A0332A6C515DE46'
 
 
-def create_account(account):
-    pass
+def pw_gen(size=16, chars=string.ascii_letters + string.digits + string.punctuation):
+    return ''.join(random.choice(chars) for _ in range(size))
+
+
+def create_account(account_name, query=ACCOUNT_CREATION_QUERY):
+    try:
+        account_data = {'account_name': account_name, 'account_password': pw_gen()}
+        output, error_execute_bash = \
+            execute_bash(f'{query} {account_data.account_name} {account_data.account_password}')
+        # TODO add extractor
+        account_passphrase = output
+        if account_passphrase:
+            account_data['account_passphrase'] = account_passphrase
+            return account_data, None
+        return None, error_execute_bash
+    except Exception as error_account_creation:
+        print(error_account_creation)
+        return None, error_account_creation

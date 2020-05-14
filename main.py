@@ -273,14 +273,14 @@ def add_validator_moniker(message):
                          & (state[message.chat.id] == States.S_SIGNUP),
     content_types=['text'])
 def add_validator_moniker(message):
-    account = message.text
-    account_data, create_account_error = create_account(account)
+    account_name = message.text
+    account_data, create_account_error = create_account(account_name)
     if account_data:
         bot.send_message(
             message.chat.id,
-            f'Account {account_data.name} created\n'
-            f'passphrase: {account_data.passphrase}'
-            f'password: {account_data.password}',
+            f'Account {account_data.account_name} created\n'
+            f'passphrase: {account_data.account_passphrase}'
+            f'password: {account_data.account_password}',
             reply_markup=BASE_KEYBOARD)
     else:
         bot.send_message(

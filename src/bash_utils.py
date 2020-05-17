@@ -1,6 +1,4 @@
 from subprocess import Popen, PIPE
-import string
-import random
 
 from config import VALIDATOR_QUERY, CYBERLINK_CREATION_QUERY, ACCOUNT_CREATION_QUERY
 
@@ -10,14 +8,18 @@ def execute_bash(bash_command):
     return process.communicate()
 
 
+def extract_from_console(console_output, keys):
+    console_output = [item.replace(' ', '').split(':') for item in str(console_output).split('\\n')]
+    return [item for item in console_output if item[0] in keys]
+
+
 def validators_state(shell_query=VALIDATOR_QUERY):
     try:
         output, error_execute_bash = execute_bash(shell_query)
         if error_execute_bash:
             print(error_execute_bash)
             return None, error_execute_bash
-        validator_data_list = [item.replace(' ', '').split(':') for item in str(output).split('\\n')]
-        validator_data_list = [item for item in validator_data_list if item[0] in ('jailed', 'moniker')]
+        validator_data_list = extract_from_console(output, ['jailed', 'moniker'])
         keys = [item[1] for item in validator_data_list[1::2]]
         values = [item[1] for item in validator_data_list[::2]]
         values = list(map(lambda x: 'unjailed' if x == 'false' else 'jailed', values))
@@ -51,8 +53,7 @@ def create_cyberlink(from_hash, to_hash, query=CYBERLINK_CREATION_QUERY):
         if error_execute_bash:
             print(error_execute_bash)
             return None, error_execute_bash
-        output = [item.replace(' ', '').split(':') for item in str(output).split('\\n')]
-        tx_hash = [item[1] for item in output if item[0] == 'txhash'][0]
+        tx_hash = extract_from_console(output, ['txhash'])[0]
         tx_hash = tx_hash.split('\\')[0]
         return tx_hash, None
     except Exception as error_parsing:
@@ -65,20 +66,18 @@ def test_create_cyberlink():
     assert tx_hash == 'C97489299E9FE23FDE5F85AF85C076D869648577A9EE914E5A0332A6C515DE46'
 
 
-def pw_gen(size=16, chars=string.ascii_letters + string.digits + string.punctuation):
-    return ''.join(random.choice(chars) for _ in range(size))
-
-
 def create_account(account_name, query=ACCOUNT_CREATION_QUERY):
     try:
-        account_data = {'account_name': account_name, 'account_password': pw_gen()}
         output, error_execute_bash = \
-            execute_bash(f'{query} {account_data.account_name} {account_data.account_password}')
-        # TODO add extractor
-        account_passphrase = output
-        if account_passphrase:
-            account_data['account_passphrase'] = account_passphrase
-            return account_data, None
+            execute_bash(f'{query} {account_name}')
+        if output:
+            account_address = extract_from_console(output, ['address'])
+            account_mnemonic_phrase = str(output).split('\\n')[-1]
+            if account_address:
+                account_data = {'name': account_name,
+                                'address': account_address,
+                                'mnemonic_phrase': account_mnemonic_phrase}
+                return account_data, None
         return None, error_execute_bash
     except Exception as error_account_creation:
         print(error_account_creation)

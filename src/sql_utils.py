@@ -55,7 +55,7 @@ class SQLighter:
                 '''CREATE TABLE IF NOT EXISTS accounts (
                        user_id INTEGER PRIMARY KEY NOT NULL,
                        account_name STRING NOT NULL,
-                       account_pass STRING NOT NULL)''').fetchall()
+                       account_address STRING NOT NULL)''').fetchall()
 
     def get_all_monikers(self):
         """ Get all chat ids and monikers lists """
@@ -124,11 +124,11 @@ class SQLighter:
                 f'DELETE FROM monikers WHERE chat_id={chat_id}').fetchall()
             return len(result)
 
-    def signup_user(self, user_id, account_name, account_pass):
+    def signup_user(self, user_id, account_name, account_address):
         with self.connection:
             return self.cursor.execute(
-                f"INSERT INTO accounts (user_id, account_name, account_pass)  "
-                f"VALUES({user_id}, '{account_name}, {account_pass}')").fetchall()
+                f"INSERT INTO accounts (user_id, account_name, account_address)  "
+                f"VALUES({user_id}, '{account_name}, {account_address}')").fetchall()
 
     def close(self):
         """ Close DB connection """

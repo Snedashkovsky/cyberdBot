@@ -278,9 +278,9 @@ def add_validator_moniker(message):
     if account_data:
         bot.send_message(
             message.chat.id,
-            f'Account {account_data.account_name} created\n'
-            f'passphrase: {account_data.account_passphrase}'
-            f'password: {account_data.account_password}',
+            f'Account {account_data.name} created\n'
+            f'address: {account_data.address}'
+            f'mnemonic phrase: {account_data.mnemonic_phrase}',
             reply_markup=BASE_KEYBOARD)
     else:
         bot.send_message(

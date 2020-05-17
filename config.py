@@ -15,7 +15,7 @@ VALIDATOR_QUERY = os.getenv('VALIDATOR_QUERY', 'cyberdcli query staking validato
 CYBERLINK_CREATION_QUERY = os.getenv('CYBERLINK_CREATION_QUERY', './src/create_cyberlink.sh')
 
 # Shell query for account creation
-ACCOUNT_CREATION_QUERY = os.getenv('ACCOUNT_CREATION_QUERY', './src/create_account_test.sh')
+ACCOUNT_CREATION_QUERY = os.getenv('ACCOUNT_CREATION_QUERY', './src/create_account.sh')
 
 # Development mode for easy bot stop
 DEV_MODE = int(os.getenv('DEV_MODE', 0))

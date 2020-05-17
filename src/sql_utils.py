@@ -128,7 +128,13 @@ class SQLighter:
         with self.connection:
             return self.cursor.execute(
                 f"INSERT INTO accounts (user_id, account_name, account_address)  "
-                f"VALUES({user_id}, '{account_name}, {account_address}')").fetchall()
+                f"VALUES({user_id}, '{account_name}', '{account_address}')").fetchall()
+
+    def check_sign_user(self, user_id):
+        with self.connection:
+            if len(self.cursor.execute(f"SELECT * FROM accounts WHERE user_id={user_id}").fetchall()) > 0:
+                return True
+            return False
 
     def close(self):
         """ Close DB connection """

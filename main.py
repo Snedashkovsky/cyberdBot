@@ -18,9 +18,11 @@ else:
 # Drop tables
 # db_worker.drop_table_monikers()
 # db_worker.drop_table_scheduler()
+# db_worker.drop_table_accounts()
 # Create tables
 db_worker.create_table_monikers()
 db_worker.create_table_scheduler()
+db_worker.create_table_accounts()
 
 state = defaultdict(lambda: States.S_START, key='some_value')
 cyberlink_startpoint_ipfs_hash = defaultdict(lambda: None, key='some_value')
@@ -273,10 +275,20 @@ def add_validator_moniker(message):
     func=lambda message: (message.text.lower() not in BASE_MENU_LOWER) \
                          & (state[message.chat.id] == States.S_SIGNUP),
     content_types=['text'])
-def add_validator_moniker(message):
+def sign_up_user(message):
     account_name = message.text
+    if db_worker.check_sign_user(message.from_user.id):
+        bot.send_message(
+            message.chat.id,
+            f'You already created account',
+            reply_markup=BASE_KEYBOARD)
+        return
     account_data, create_account_error = create_account(account_name)
     if account_data:
+        try:
+            db_worker.signup_user(message.from_user.id, account_data["name"], account_data["address"])
+        except Exception as e:
+            print(e)
         bot.send_message(
             message.chat.id,
             f'Account: <b>{account_data["name"]}</b>\n'

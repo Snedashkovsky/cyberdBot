@@ -279,9 +279,12 @@ def add_validator_moniker(message):
     if account_data:
         bot.send_message(
             message.chat.id,
-            f'Account {account_data["name"]} created\n'
-            f'address: {account_data["address"]}\n'
-            f'mnemonic phrase: {account_data["mnemonic_phrase"]}',
+            f'Account: <b>{account_data["name"]}</b>\n'
+            f'Address: <b>{account_data["address"]}</b>\n\n'
+            f'Mnemonic phrase: <u>{account_data["mnemonic_phrase"]}</u>\n'
+            f'**Important** write this mnemonic phrase in a safe place.\n'
+            f'It is the only way to recover your account if you ever forget your password.',
+            parse_mode="HTML",
             reply_markup=BASE_KEYBOARD)
     else:
         bot.send_message(

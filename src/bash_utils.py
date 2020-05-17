@@ -10,7 +10,7 @@ def execute_bash(bash_command):
 
 def extract_from_console(console_output, keys):
     console_output = [item.replace(' ', '').split(':') for item in str(console_output).split('\\n')]
-    return [item for item in console_output if item[0] in keys]
+    return [[item[0], item[1].split('\\')[0]] for item in console_output if item[0] in keys]
 
 
 def validators_state(shell_query=VALIDATOR_QUERY):
@@ -53,7 +53,7 @@ def create_cyberlink(from_hash, to_hash, query=CYBERLINK_CREATION_QUERY):
         if error_execute_bash:
             print(error_execute_bash)
             return None, error_execute_bash
-        tx_hash = extract_from_console(output, ['txhash'])[0][1].split('\\')[0]
+        tx_hash = extract_from_console(output, ['txhash'])[0][1]
         return tx_hash, None
     except Exception as error_parsing:
         print(error_parsing)

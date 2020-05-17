@@ -89,8 +89,10 @@ def endpoint_cyberlink(message):
     if ipfs_hash:
         state[message.chat.id] = States.S_STARTPOINT_CYBERLINK
         cyberlink_hash, cyberlink_error = \
-            create_cyberlink(from_hash=cyberlink_startpoint_ipfs_hash[message.chat.id],
-                             to_hash=ipfs_hash)
+            create_cyberlink(
+                account_name=db_worker.get_account_name(message.from_user.id),
+                from_hash=cyberlink_startpoint_ipfs_hash[message.chat.id],
+                to_hash=ipfs_hash)
         if cyberlink_hash:
             bot.send_message(
                 message.chat.id,
@@ -170,16 +172,22 @@ def main_menu(message):
             'Please send URL, text, file, photo, video, audio, contact, location, video or voice',
             reply_markup=BASE_KEYBOARD)
     elif message.text.lower() == 'create cyberlink':
-        state[message.chat.id] = States.S_STARTPOINT_CYBERLINK
-        bot.send_message(
-            message.chat.id,
-            'Please enter a keyword as a starting point for a new cyberLink or choose another service from the menu.\n'
-            'You may enter an text, cyberLink, IPFS hash, URL, file, photo, video, audio, contact, location, video or '
-            'voice.\n'
-            'Please enter a keyword by which your content will be searchable in cyber, this will create the first part '
-            'of the cyberLink.\n'
-            'Please remember to be gentle, the search is case-senstive.',
-            reply_markup=BASE_KEYBOARD)
+        if db_worker.check_sign_user(message.from_user.id):
+            state[message.chat.id] = States.S_STARTPOINT_CYBERLINK
+            bot.send_message(
+                message.chat.id,
+                'Please enter a keyword as a starting point for a new cyberLink or choose another service from the menu.\n'
+                'You may enter an text, cyberLink, IPFS hash, URL, file, photo, video, audio, contact, location, video or '
+                'voice.\n'
+                'Please enter a keyword by which your content will be searchable in cyber, this will create the first part '
+                'of the cyberLink.\n'
+                'Please remember to be gentle, the search is case-senstive.',
+                reply_markup=BASE_KEYBOARD)
+        else:
+            bot.send_message(
+                message.chat.id,
+                'Please sign up in the cyberd before creating cyberLinks',
+                reply_markup=BASE_KEYBOARD)
     elif message.text.lower() == 'sign up':
         state[message.chat.id] = States.S_SIGNUP
         bot.send_message(

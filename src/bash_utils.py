@@ -47,9 +47,9 @@ def test_validators_state():
             'space': 'unjailed'}
 
 
-def create_cyberlink(from_hash, to_hash, query=CYBERLINK_CREATION_QUERY):
+def create_cyberlink(account_name, from_hash, to_hash, query=CYBERLINK_CREATION_QUERY):
     try:
-        output, error_execute_bash = execute_bash(f'{query} {from_hash} {to_hash}')
+        output, error_execute_bash = execute_bash(f'{query} {account_name} {from_hash} {to_hash}')
         if error_execute_bash:
             print(error_execute_bash)
             return None, error_execute_bash

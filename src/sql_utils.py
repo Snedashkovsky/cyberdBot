@@ -136,6 +136,14 @@ class SQLighter:
                 return True
             return False
 
+    def get_account_name(self, user_id):
+        with self.connection:
+            return self.cursor.execute(f"SELECT account_name FROM accounts WHERE user_id={user_id}").fetchall()[0][0]
+
+    def get_account_address(self, user_id):
+        with self.connection:
+            return self.cursor.execute(f"SELECT account_address FROM accounts WHERE user_id={user_id}").fetchall()[0][0]
+
     def close(self):
         """ Close DB connection """
         self.connection.close()

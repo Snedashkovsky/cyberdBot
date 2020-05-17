@@ -298,7 +298,17 @@ def sign_up_user(message):
             f'It is the only way to recover your account if you ever forget your password.',
             parse_mode="HTML",
             reply_markup=BASE_KEYBOARD)
-        transfer_eul_tokens(account_data["address"])
+        transfer_state, transfer_error = transfer_eul_tokens(account_data["address"])
+        if transfer_state:
+            bot.send_message(
+                message.chat.id,
+                'I transferred 100,000 EUL Tokens to your account.\nYou can create cyberLinks!',
+                reply_markup=BASE_KEYBOARD)
+        else:
+            bot.send_message(
+                message.chat.id,
+                f'Tokens was not transferred.\nError: {transfer_error}',
+                reply_markup=BASE_KEYBOARD)
     else:
         bot.send_message(
             message.chat.id,

@@ -3,7 +3,7 @@ import time
 from os import mkdir
 
 from src.bot_utils import send_ipfs_notification, jail_check, dict_to_md_list, message_upload_to_ipfs
-from src.bash_utils import validators_state, create_cyberlink, create_account
+from src.bash_utils import validators_state, create_cyberlink, create_account, transfer_eul_tokens
 from config import BASE_MENU_LOWER, MONITORING_MENU_LOWER, BASE_KEYBOARD, MONITORING_KEYBOARD, DEV_MODE, States, bot, \
     db_worker
 
@@ -298,6 +298,7 @@ def sign_up_user(message):
             f'It is the only way to recover your account if you ever forget your password.',
             parse_mode="HTML",
             reply_markup=BASE_KEYBOARD)
+        transfer_eul_tokens(account_data["address"])
     else:
         bot.send_message(
             message.chat.id,

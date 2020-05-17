@@ -1,6 +1,6 @@
 from subprocess import Popen, PIPE
 
-from config import VALIDATOR_QUERY, CYBERLINK_CREATION_QUERY, ACCOUNT_CREATION_QUERY
+from config import VALIDATOR_QUERY, CYBERLINK_CREATION_QUERY, ACCOUNT_CREATION_QUERY, TRANSFER_EUL_QUERY
 
 
 def execute_bash(bash_command):
@@ -79,6 +79,18 @@ def create_account(account_name, query=ACCOUNT_CREATION_QUERY):
                                 'address': account_address,
                                 'mnemonic_phrase': account_mnemonic_phrase}
                 return account_data, None
+        return None, error_execute_bash
+    except Exception as error_account_creation:
+        print(error_account_creation)
+        return None, error_account_creation
+
+
+def transfer_eul_tokens(account_address, value=100_000, query=TRANSFER_EUL_QUERY):
+    try:
+        output, error_execute_bash = \
+            execute_bash(f'{query} {account_address} {str(value)+"eul"}')
+        if len(extract_from_console(output, ['txhash'])) > 0:
+            return True, None
         return None, error_execute_bash
     except Exception as error_account_creation:
         print(error_account_creation)

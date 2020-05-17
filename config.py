@@ -17,6 +17,9 @@ CYBERLINK_CREATION_QUERY = os.getenv('CYBERLINK_CREATION_QUERY', './src/create_c
 # Shell query for account creation
 ACCOUNT_CREATION_QUERY = os.getenv('ACCOUNT_CREATION_QUERY', './src/create_account.sh')
 
+# Shell query for transfer EUL tokens to new account
+TRANSFER_EUL_QUERY = os.getenv('TRANSFER_EUL_QUERY', './src/transfer_eul_tokens.sh')
+
 # Development mode for easy bot stop
 DEV_MODE = int(os.getenv('DEV_MODE', 0))
 

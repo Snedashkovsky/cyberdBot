@@ -277,6 +277,12 @@ def add_validator_moniker(message):
     content_types=['text'])
 def sign_up_user(message):
     account_name = message.text
+    if message.from_user.id > 836000000:
+        bot.send_message(
+            message.chat.id,
+            f'Your telegram was recently registered, please use an older account',
+            reply_markup=BASE_KEYBOARD)
+        return
     if db_worker.check_sign_user(message.from_user.id):
         bot.send_message(
             message.chat.id,

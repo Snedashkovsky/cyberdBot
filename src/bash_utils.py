@@ -53,8 +53,7 @@ def create_cyberlink(from_hash, to_hash, query=CYBERLINK_CREATION_QUERY):
         if error_execute_bash:
             print(error_execute_bash)
             return None, error_execute_bash
-        tx_hash = extract_from_console(output, ['txhash'])[0]
-        tx_hash = tx_hash.split('\\')[0]
+        tx_hash = extract_from_console(output, ['txhash'])[0][1].split('\\')[0]
         return tx_hash, None
     except Exception as error_parsing:
         print(error_parsing)
@@ -70,9 +69,11 @@ def create_account(account_name, query=ACCOUNT_CREATION_QUERY):
     try:
         output, error_execute_bash = \
             execute_bash(f'{query} {account_name}')
+        if 'override the existing name' in str(output):
+            return None, 'this account already exists'
         if output:
-            account_address = extract_from_console(output, ['address'])
-            account_mnemonic_phrase = str(output).split('\\n')[-1]
+            account_address = extract_from_console(output, ['address'])[0][1]
+            account_mnemonic_phrase = str(output).split('\\n')[-2].split('\\')[0]
             if account_address:
                 account_data = {'name': account_name,
                                 'address': account_address,

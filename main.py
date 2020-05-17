@@ -140,7 +140,8 @@ def text_upload_to_ipfs(message):
 @bot.message_handler(
     func=lambda message: (message.text.lower() in BASE_MENU_LOWER) \
                          & (state[message.chat.id] in (States.S_START, States.S_STARTPOINT_CYBERLINK,
-                                                       States.S_ENDPOINT_CYBERLINK, States.S_UPLOAD_IPFS)),
+                                                       States.S_ENDPOINT_CYBERLINK, States.S_UPLOAD_IPFS,
+                                                       States.S_SIGNUP)),
     content_types=['text']
 )
 def main_menu(message):
@@ -278,9 +279,9 @@ def add_validator_moniker(message):
     if account_data:
         bot.send_message(
             message.chat.id,
-            f'Account {account_data.name} created\n'
-            f'address: {account_data.address}'
-            f'mnemonic phrase: {account_data.mnemonic_phrase}',
+            f'Account {account_data["name"]} created\n'
+            f'address: {account_data["address"]}\n'
+            f'mnemonic phrase: {account_data["mnemonic_phrase"]}',
             reply_markup=BASE_KEYBOARD)
     else:
         bot.send_message(

@@ -53,6 +53,9 @@ def create_cyberlink(account_name, from_hash, to_hash, query=CYBERLINK_CREATION_
         if error_execute_bash:
             print(error_execute_bash)
             return None, error_execute_bash
+        rawlog = extract_from_console(output, ['rawlog'])[0][1]
+        if rawlog == 'not enough personal bandwidth'.replace(' ', ''):
+            return None, 'not enough personal bandwidth'
         tx_hash = extract_from_console(output, ['txhash'])[0][1]
         return tx_hash, None
     except Exception as error_parsing:
@@ -85,7 +88,7 @@ def create_account(account_name, query=ACCOUNT_CREATION_QUERY):
         return None, error_account_creation
 
 
-def transfer_eul_tokens(account_address, value=100_000, query=TRANSFER_EUL_QUERY):
+def transfer_eul_tokens(account_address, value=2_500_000, query=TRANSFER_EUL_QUERY):
     try:
         output, error_execute_bash = \
             execute_bash(f'{query} {account_address} {str(value)+"eul"}')

@@ -8,6 +8,9 @@ from src.sql_utils import SQLighter
 # Telegram bot token from BotFather
 TELEBOT_TOKEN = os.getenv('TELEBOT_TOKEN')
 
+# cyberdBot key name in the cyberd
+CYBERD_KEY_NAME = os.getenv('CYBERD_KEY_NAME')
+
 # Shell query for get validators state data
 VALIDATOR_QUERY = os.getenv('VALIDATOR_QUERY', 'cyberdcli query staking validators --trust-node=true')
 

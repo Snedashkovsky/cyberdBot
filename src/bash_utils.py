@@ -64,7 +64,7 @@ def create_cyberlink(account_name, from_hash, to_hash, query=CYBERLINK_CREATION_
 
 
 def test_create_cyberlink():
-    tx_hash, _ = create_cyberlink('', '', query='cat ./tests/create_cyberlink_test')
+    tx_hash, _ = create_cyberlink('', '', '', query='cat ./tests/create_cyberlink_test')
     assert tx_hash == 'C97489299E9FE23FDE5F85AF85C076D869648577A9EE914E5A0332A6C515DE46'
 
 

@@ -320,12 +320,12 @@ def sign_up_user(message):
             f'Your telegram was recently registered, please use an older account',
             reply_markup=BASE_KEYBOARD)
         return
-    # if db_worker.check_sign_user(message.from_user.id):
-    #     bot.send_message(
-    #         message.chat.id,
-    #         f'You already created account',
-    #         reply_markup=BASE_KEYBOARD)
-    #     return
+    if db_worker.check_sign_user(message.from_user.id):
+        bot.send_message(
+            message.chat.id,
+            f'You already created account',
+            reply_markup=BASE_KEYBOARD)
+        return
     account_data, create_account_error = create_account(account_name)
     if account_data:
         try:

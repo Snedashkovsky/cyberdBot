@@ -73,7 +73,7 @@ def files_upload_to_ipfs(message):
     content_types=['text', 'audio', 'contact', 'document', 'location', 'photo', 'video', 'video_note', 'voice'])
 def startpoint_cyberlink(message):
     ipfs_hash, error = message_upload_to_ipfs(message)
-    send_ipfs_notification(message, ipfs_hash, error, message_text='endpoint of cyberLink')
+    send_ipfs_notification(message, ipfs_hash, error, message_text='an endpoint for your cyberLink')
     if ipfs_hash:
         cyberlink_startpoint_ipfs_hash[message.chat.id] = ipfs_hash
         state[message.chat.id] = States.S_ENDPOINT_CYBERLINK

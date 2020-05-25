@@ -215,13 +215,13 @@ def main_menu(message):
         else:
             bot.send_message(
                 message.chat.id,
-                'Please sign up in the cyberd before creating cyberLinks',
+                'Please create an account before creating cyberLinks',
                 reply_markup=BASE_KEYBOARD)
     elif message.text.lower() == 'sign up':
         state[message.chat.id] = States.S_SIGNUP
         bot.send_message(
             message.chat.id,
-            'Please enter a name of a cyberd account you want to create',
+            'Choose a name for your cyber account. Remember that the name will be case sensitive',
             reply_markup=BASE_KEYBOARD)
 
 
@@ -337,15 +337,18 @@ def sign_up_user(message):
             f'Account: <b>{account_data["name"]}</b>\n'
             f'Address: <b>{account_data["address"]}</b>\n\n'
             f'Mnemonic phrase: <u>{account_data["mnemonic_phrase"]}</u>\n'
-            f'**Important** write this mnemonic phrase in a safe place.\n'
-            f'It is the only way to recover your account if you ever forget your password.',
+            f'**Important**Please write down your mnemonic phrase and keep it safe. '
+            f'The mnemonic is the only way to recover your account. '
+            f'There is no way of recovering any funds if you lose it.',
             parse_mode="HTML",
             reply_markup=BASE_KEYBOARD)
         transfer_state, transfer_error = transfer_eul_tokens(account_data["address"])
         if transfer_state:
             bot.send_message(
                 message.chat.id,
-                'I transferred 2,500,000 EUL Tokens to your account.\nYou can create cyberLinks!',
+                'I have transferred 2,500,000 EUL to you account.\n'
+                'You can create cyberlinks now!\n'
+                'If you create more than 10 cyberlinks, I will transfer an additional 7,500,000 EUL to your account!',
                 reply_markup=BASE_KEYBOARD)
         else:
             bot.send_message(

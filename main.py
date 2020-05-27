@@ -224,7 +224,27 @@ def main_menu(message):
                 'Please create an account before creating cyberLinks',
                 reply_markup=BASE_KEYBOARD)
     elif message.text.lower() == 'sign up':
+        if db_worker.check_sign_user(message.from_user.id):
+            bot.send_message(
+                message.chat.id,
+                f'You already created account',
+                reply_markup=BASE_KEYBOARD)
+            return
+        if message.from_user.id > 836000000:
+            bot.send_message(
+                message.chat.id,
+                f'Your telegram was recently registered, please use an older account',
+                reply_markup=BASE_KEYBOARD)
+            return
         state[message.chat.id] = States.S_SIGNUP
+        bot.send_message(
+            message.chat.id,
+            'To the maximum extent permitted by law, we make no guarantee, representation or warranty and expressly '
+            'disclaim liability (whether to you or any person).\n'
+            'Your use of this bot is voluntary and at your sole risk.\n'
+            'In the event of any loss, hack or theft of EUL tokens from your account, you acknowledge and confirm '
+            'that you shall have no right(s), claim(s) or causes of action in any way whatsoever against us.',
+            reply_markup=BASE_KEYBOARD)
         bot.send_message(
             message.chat.id,
             'Choose a name for your cyber account. Remember that the name will be case sensitive',
@@ -320,18 +340,6 @@ def add_validator_moniker(message):
     content_types=['text'])
 def sign_up_user(message):
     account_name = message.text
-    if message.from_user.id > 836000000:
-        bot.send_message(
-            message.chat.id,
-            f'Your telegram was recently registered, please use an older account',
-            reply_markup=BASE_KEYBOARD)
-        return
-    if db_worker.check_sign_user(message.from_user.id):
-        bot.send_message(
-            message.chat.id,
-            f'You already created account',
-            reply_markup=BASE_KEYBOARD)
-        return
     account_data, create_account_error = create_account(account_name)
     if account_data:
         try:

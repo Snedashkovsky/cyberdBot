@@ -1,9 +1,8 @@
 #!/usr/bin/expect -f
-set account  [lindex $argv 0]
-set from [lindex $argv 1]
-set to [lindex $argv 2]
+set to_account_address [lindex $argv 0]
+set value [lindex $argv 1]
 set timeout -1
-spawn cyberdcli link --from=$account --cid-from=$from --cid-to=$to --chain-id=euler-6
+spawn cyberdcli tx send $env(CYBERD_KEY_NAME) $to_account_address $value --chain-id euler-6
 expect "* passphrase:"  {send -- "$env(CYBERD_PASS)\r"}
 expect "* broadcasting *" {send -- "y\r"}
 expect "* passphrase:"  {send -- "$env(CYBERD_PASS)\r"}

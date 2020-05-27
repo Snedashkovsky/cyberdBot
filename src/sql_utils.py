@@ -7,6 +7,8 @@ class SQLighter:
     Tables:
     - monikers
     - scheduler
+    - accounts
+    - cyberlinks
     """
 
     def __init__(self, database):
@@ -25,13 +27,26 @@ class SQLighter:
             return self.cursor.execute(
                 '''DROP TABLE IF EXISTS scheduler''').fetchall()
 
+    def drop_table_accounts(self):
+        """ Drop accounts table """
+        with self.connection:
+            return self.cursor.execute(
+                '''DROP TABLE IF EXISTS accounts''').fetchall()
+
+    def drop_table_cyberlinks(self):
+        """ Drop accounts table """
+        with self.connection:
+            return self.cursor.execute(
+                '''DROP TABLE IF EXISTS cyberlinks''').fetchall()
+
     def create_table_monikers(self):
         """ Create monikers table """
         with self.connection:
             return self.cursor.execute(
                 '''CREATE TABLE IF NOT EXISTS monikers (
                        chat_id INTEGER NOT NULL,
-                       moniker STRING NOT NULL)''').fetchall()
+                       moniker STRING NOT NULL,
+                       ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''').fetchall()
 
     def create_table_scheduler(self):
         """ Create scheduler state table """
@@ -39,7 +54,29 @@ class SQLighter:
             return self.cursor.execute(
                 '''CREATE TABLE IF NOT EXISTS scheduler (
                        chat_id INTEGER PRIMARY KEY NOT NULL,
-                       state BOOL NOT NULL)''').fetchall()
+                       state BOOL NOT NULL,
+                       ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''').fetchall()
+
+    def create_table_accounts(self):
+        """ Create scheduler state table """
+        with self.connection:
+            return self.cursor.execute(
+                '''CREATE TABLE IF NOT EXISTS accounts (
+                       user_id INTEGER PRIMARY KEY NOT NULL,
+                       account_name STRING NOT NULL,
+                       account_address STRING NOT NULL,
+                       ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''').fetchall()
+
+    def create_table_cyberlinks(self):
+        """ Create scheduler state table """
+        with self.connection:
+            return self.cursor.execute(
+                '''CREATE TABLE IF NOT EXISTS cyberlinks (
+                       cyberlink_hash STRING PRIMARY KEY NOT NULL, 
+                       user_id INTEGER NOT NULL,
+                       from_ipfs_hash STRING NOT NULL,
+                       to_ipfs_hash STRING NOT NULL,
+                       ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''').fetchall()
 
     def get_all_monikers(self):
         """ Get all chat ids and monikers lists """
@@ -107,6 +144,47 @@ class SQLighter:
             result = self.cursor.execute(
                 f'DELETE FROM monikers WHERE chat_id={chat_id}').fetchall()
             return len(result)
+
+    def signup_user(self, user_id, account_name, account_address):
+        with self.connection:
+            return self.cursor.execute(
+                f"INSERT INTO accounts (user_id, account_name, account_address)  "
+                f"VALUES({user_id}, '{account_name}', '{account_address}')").fetchall()
+
+    def check_sign_user(self, user_id):
+        with self.connection:
+            if len(self.cursor.execute(f"SELECT * FROM accounts WHERE user_id={user_id}").fetchall()) > 0:
+                return True
+            return False
+
+    def write_cyberlink(self, user_id, cyberlink_hash, from_ipfs_hash, to_ipfs_hash):
+        with self.connection:
+            self.cursor.execute(
+                    f"INSERT INTO cyberlinks (user_id, cyberlink_hash, from_ipfs_hash, to_ipfs_hash)  "
+                    f"VALUES({user_id}, '{cyberlink_hash}', '{from_ipfs_hash}', '{to_ipfs_hash}')").fetchall()
+
+    def get_account_name(self, user_id):
+        with self.connection:
+            return self.cursor.execute(f"SELECT account_name FROM accounts WHERE user_id={user_id}").fetchall()[0][0]
+
+    def get_account_address(self, user_id):
+        with self.connection:
+            return self.cursor.execute(f"SELECT account_address FROM accounts WHERE user_id={user_id}").fetchall()[0][0]
+
+    def get_cyberlink_count(self, user_id):
+        with self.connection:
+            return self.cursor.execute(f"SELECT count(*) FROM cyberlinks WHERE user_id={user_id}").fetchall()[0][0]
+
+    def get_total_account_with_full_transfers(self):
+        with self.connection:
+            return self.cursor.execute("SELECT count(*) "
+                                       "FROM ("
+                                       "    SELECT "
+                                       "        user_id, "
+                                       "        count(*) as cyberlink_count "
+                                       "    FROM cyberlinks "
+                                       "    GROUP BY user_id "
+                                       "    HAVING cyberlink_count > 10)").fetchall()[0][0]
 
     def close(self):
         """ Close DB connection """

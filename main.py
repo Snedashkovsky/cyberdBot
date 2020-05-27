@@ -3,9 +3,9 @@ import time
 from os import mkdir
 
 from src.bot_utils import send_ipfs_notification, jail_check, dict_to_md_list, message_upload_to_ipfs
-from src.bash_utils import validators_state, create_cyberlink
-from config import BASE_MENU_LOWER, MONITORING_MENU_LOWER, BASE_KEYBOARD, MONITORING_KEYBOARD, DEV_MODE, States, bot, \
-    db_worker
+from src.bash_utils import validators_state, create_cyberlink, create_account, transfer_eul_tokens
+from config import CYBERD_KEY_NAME, BASE_MENU_LOWER, MONITORING_MENU_LOWER, BASE_KEYBOARD, MONITORING_KEYBOARD, \
+    DEV_MODE, States, bot, db_worker
 
 # Create directory for temporary files
 try:
@@ -18,9 +18,13 @@ else:
 # Drop tables
 # db_worker.drop_table_monikers()
 # db_worker.drop_table_scheduler()
+# db_worker.drop_table_accounts()
+# db_worker.drop_table_cyberlinks()
 # Create tables
 db_worker.create_table_monikers()
 db_worker.create_table_scheduler()
+db_worker.create_table_accounts()
+db_worker.create_table_cyberlinks()
 
 state = defaultdict(lambda: States.S_START, key='some_value')
 cyberlink_startpoint_ipfs_hash = defaultdict(lambda: None, key='some_value')
@@ -58,7 +62,10 @@ def start_message(message):
     content_types=['audio', 'contact', 'document', 'location', 'photo', 'video', 'video_note', 'voice'])
 def files_upload_to_ipfs(message):
     ipfs_hash, error = message_upload_to_ipfs(message)
-    send_ipfs_notification(message, ipfs_hash, error, add_ipfs=True)
+    send_ipfs_notification(message=message,
+                           ipfs_hash=ipfs_hash,
+                           error=error,
+                           add_ipfs=True)
 
 
 @bot.message_handler(
@@ -69,7 +76,10 @@ def files_upload_to_ipfs(message):
     content_types=['text', 'audio', 'contact', 'document', 'location', 'photo', 'video', 'video_note', 'voice'])
 def startpoint_cyberlink(message):
     ipfs_hash, error = message_upload_to_ipfs(message)
-    send_ipfs_notification(message, ipfs_hash, error, message_text='endpoint of cyberLink')
+    send_ipfs_notification(message=message,
+                           ipfs_hash=ipfs_hash,
+                           error=error,
+                           message_text='an endpoint for your cyberlink. The endpoint is the content itself')
     if ipfs_hash:
         cyberlink_startpoint_ipfs_hash[message.chat.id] = ipfs_hash
         state[message.chat.id] = States.S_ENDPOINT_CYBERLINK
@@ -87,8 +97,16 @@ def endpoint_cyberlink(message):
     if ipfs_hash:
         state[message.chat.id] = States.S_STARTPOINT_CYBERLINK
         cyberlink_hash, cyberlink_error = \
-            create_cyberlink(from_hash=cyberlink_startpoint_ipfs_hash[message.chat.id],
-                             to_hash=ipfs_hash)
+            create_cyberlink(
+                account_name=db_worker.get_account_name(message.from_user.id),
+                from_hash=cyberlink_startpoint_ipfs_hash[message.chat.id],
+                to_hash=ipfs_hash)
+        if cyberlink_error=='not enough personal bandwidth':
+            cyberlink_hash, cyberlink_error = \
+                create_cyberlink(
+                    account_name=CYBERD_KEY_NAME,
+                    from_hash=cyberlink_startpoint_ipfs_hash[message.chat.id],
+                    to_hash=ipfs_hash)
         if cyberlink_hash:
             bot.send_message(
                 message.chat.id,
@@ -102,6 +120,27 @@ def endpoint_cyberlink(message):
                 f'to: https://ipfs.io/ipfs/{ipfs_hash}',
                 parse_mode='HTML',
                 reply_markup=BASE_KEYBOARD)
+            db_worker.write_cyberlink(
+                user_id=message.from_user.id,
+                cyberlink_hash=cyberlink_hash,
+                from_ipfs_hash=cyberlink_startpoint_ipfs_hash[message.chat.id],
+                to_ipfs_hash=ipfs_hash)
+            if db_worker.get_cyberlink_count(user_id=message.from_user.id) == 10:
+                transfer_state, transfer_error = transfer_eul_tokens(
+                    account_address=db_worker.get_account_address(user_id=message.from_user.id),
+                    value=7_500_000)
+                if transfer_state:
+                    bot.send_message(
+                        message.chat.id,
+                        'Congratulations!\n'
+                        'You have created 10 links.\n'
+                        '7,500,000 EUL Tokens have been transferred to your account!',
+                        reply_markup=BASE_KEYBOARD)
+                else:
+                    bot.send_message(
+                        message.chat.id,
+                        f'Tokens was not transferred.\nError: {transfer_error}',
+                        reply_markup=BASE_KEYBOARD)
         elif cyberlink_error:
             bot.send_message(
                 message.chat.id,
@@ -140,7 +179,8 @@ def text_upload_to_ipfs(message):
 @bot.message_handler(
     func=lambda message: (message.text.lower() in BASE_MENU_LOWER) \
                          & (state[message.chat.id] in (States.S_START, States.S_STARTPOINT_CYBERLINK,
-                                                       States.S_ENDPOINT_CYBERLINK, States.S_UPLOAD_IPFS)),
+                                                       States.S_ENDPOINT_CYBERLINK, States.S_UPLOAD_IPFS,
+                                                       States.S_SIGNUP)),
     content_types=['text']
 )
 def main_menu(message):
@@ -167,15 +207,47 @@ def main_menu(message):
             'Please send URL, text, file, photo, video, audio, contact, location, video or voice',
             reply_markup=BASE_KEYBOARD)
     elif message.text.lower() == 'create cyberlink':
-        state[message.chat.id] = States.S_STARTPOINT_CYBERLINK
+        if db_worker.check_sign_user(message.from_user.id):
+            state[message.chat.id] = States.S_STARTPOINT_CYBERLINK
+            bot.send_message(
+                message.chat.id,
+                'Please enter a keyword as a starting point for a new cyberLink or choose another service from the menu.\n'
+                'You may enter an text, cyberLink, IPFS hash, URL, file, photo, video, audio, contact, location, video or '
+                'voice.\n'
+                'Please enter a keyword by which your content will be searchable in cyber, this will create the first part '
+                'of the cyberLink.\n'
+                'Please remember to be gentle, the search is case-senstive.',
+                reply_markup=BASE_KEYBOARD)
+        else:
+            bot.send_message(
+                message.chat.id,
+                'Please create an account before creating cyberLinks',
+                reply_markup=BASE_KEYBOARD)
+    elif message.text.lower() == 'sign up':
+        if db_worker.check_sign_user(message.from_user.id):
+            bot.send_message(
+                message.chat.id,
+                f'You already created account',
+                reply_markup=BASE_KEYBOARD)
+            return
+        if message.from_user.id > 836000000:
+            bot.send_message(
+                message.chat.id,
+                f'Your telegram was recently registered, please use an older account',
+                reply_markup=BASE_KEYBOARD)
+            return
+        state[message.chat.id] = States.S_SIGNUP
         bot.send_message(
             message.chat.id,
-            'Please enter a keyword as a starting point for a new cyberLink or choose another service from the menu.\n'
-            'You may enter an text, cyberLink, IPFS hash, URL, file, photo, video, audio, contact, location, video or '
-            'voice.\n'
-            'Please enter a keyword by which your content will be searchable in cyber, this will create the first part '
-            'of the cyberLink.\n'
-            'Please remember to be gentle, the search is case-senstive.',
+            'To the maximum extent permitted by law, we make no guarantee, representation or warranty and expressly '
+            'disclaim liability (whether to you or any person).\n'
+            'Your use of this bot is voluntary and at your sole risk.\n'
+            'In the event of any loss, hack or theft of EUL tokens from your account, you acknowledge and confirm '
+            'that you shall have no right(s), claim(s) or causes of action in any way whatsoever against us.',
+            reply_markup=BASE_KEYBOARD)
+        bot.send_message(
+            message.chat.id,
+            'Choose a name for your cyber account. Remember that the name will be case sensitive',
             reply_markup=BASE_KEYBOARD)
 
 
@@ -260,6 +332,49 @@ def add_validator_moniker(message):
             'The moniker you have entered is not in the validator list.\n'
             'Please enter a valid moniker and be gentle, the bot is case sensitive',
             reply_markup=MONITORING_KEYBOARD)
+
+
+@bot.message_handler(
+    func=lambda message: (message.text.lower() not in BASE_MENU_LOWER) \
+                         & (state[message.chat.id] == States.S_SIGNUP),
+    content_types=['text'])
+def sign_up_user(message):
+    account_name = message.text
+    account_data, create_account_error = create_account(account_name)
+    if account_data:
+        try:
+            db_worker.signup_user(message.from_user.id, account_data["name"], account_data["address"])
+        except Exception as e:
+            print(e)
+        bot.send_message(
+            message.chat.id,
+            f'Account: <b>{account_data["name"]}</b>\n'
+            f'Address: <b>{account_data["address"]}</b>\n\n'
+            f'Mnemonic phrase: <u>{account_data["mnemonic_phrase"]}</u>\n'
+            f'**Important**Please write down your mnemonic phrase and keep it safe. '
+            f'The mnemonic is the only way to recover your account. '
+            f'There is no way of recovering any funds if you lose it.',
+            parse_mode="HTML",
+            reply_markup=BASE_KEYBOARD)
+        transfer_state, transfer_error = transfer_eul_tokens(account_data["address"])
+        if transfer_state:
+            bot.send_message(
+                message.chat.id,
+                'I have transferred 2,500,000 EUL to you account.\n'
+                'You can create cyberlinks now!\n'
+                'If you create more than 10 cyberlinks, I will transfer an additional 7,500,000 EUL to your account!',
+                reply_markup=BASE_KEYBOARD)
+        else:
+            bot.send_message(
+                message.chat.id,
+                f'Tokens was not transferred.\nError: {transfer_error}',
+                reply_markup=BASE_KEYBOARD)
+    else:
+        bot.send_message(
+            message.chat.id,
+            f'Account not created\n'
+            f'error: {create_account_error}',
+            reply_markup=BASE_KEYBOARD)
 
 
 if __name__ == '__main__':

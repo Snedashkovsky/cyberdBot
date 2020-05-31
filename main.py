@@ -1,6 +1,7 @@
 from collections import defaultdict
 import time
 from os import mkdir
+import re
 
 from src.bot_utils import send_ipfs_notification, jail_check, dict_to_md_list, message_upload_to_ipfs
 from src.bash_utils import validators_state, create_cyberlink, create_account, transfer_eul_tokens
@@ -340,7 +341,22 @@ def add_validator_moniker(message):
     content_types=['text'])
 def sign_up_user(message):
     account_name = message.text
-    account_data, create_account_error = create_account(account_name)
+    if len(account_name) > 20:
+        bot.send_message(
+            message.chat.id,
+            'Your account name contains more than 20 characters.\n'
+            'Please enter a different account name.',
+            reply_markup=BASE_KEYBOARD)
+        return
+    if re.match("^[A-Za-z0-9_-]*$", account_name):
+        account_data, create_account_error = create_account(account_name)
+    else:
+        bot.send_message(
+            message.chat.id,
+            'Your account name should only contain letters and numbers.\n'
+            'Please enter a different account name.',
+            reply_markup=BASE_KEYBOARD)
+        return
     if account_data:
         try:
             db_worker.signup_user(message.from_user.id, account_data["name"], account_data["address"])
@@ -349,7 +365,8 @@ def sign_up_user(message):
         bot.send_message(
             message.chat.id,
             f'Account: <b>{account_data["name"]}</b>\n'
-            f'Address: <b>{account_data["address"]}</b>\n\n'
+            f'Address: <b>{account_data["address"]}</b>\n'
+            f'Link: https://cyber.page/network/euler/contract/{account_data["address"]}\n\n'
             f'Mnemonic phrase: <u>{account_data["mnemonic_phrase"]}</u>\n'
             f'**Important**Please write down your mnemonic phrase and keep it safe. '
             f'The mnemonic is the only way to recover your account. '

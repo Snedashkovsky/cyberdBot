@@ -2,6 +2,7 @@ from collections import defaultdict
 import time
 from os import mkdir
 import re
+import logging
 
 from src.bot_utils import send_ipfs_notification, jail_check, dict_to_md_list, message_upload_to_ipfs
 from src.bash_utils import validators_state, create_cyberlink, create_account, transfer_eul_tokens
@@ -16,17 +17,22 @@ except OSError:
 else:
     print('Successfully created the directory "temp".')
 
+# Set logging format
+logging.basicConfig(filename='cyberdbot.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
 # Drop tables
 # db_worker.drop_table_monikers()
 # db_worker.drop_table_scheduler()
 # db_worker.drop_table_accounts()
 # db_worker.drop_table_cyberlinks()
+
 # Create tables
 db_worker.create_table_monikers()
 db_worker.create_table_scheduler()
 db_worker.create_table_accounts()
 db_worker.create_table_cyberlinks()
 
+# Create dictionaries
 state = defaultdict(lambda: States.S_START, key='some_value')
 cyberlink_startpoint_ipfs_hash = defaultdict(lambda: None, key='some_value')
 
@@ -102,7 +108,7 @@ def endpoint_cyberlink(message):
                 account_name=db_worker.get_account_name(message.from_user.id),
                 from_hash=cyberlink_startpoint_ipfs_hash[message.chat.id],
                 to_hash=ipfs_hash)
-        if cyberlink_error=='not enough personal bandwidth':
+        if cyberlink_error == 'not enough personal bandwidth':
             cyberlink_hash, cyberlink_error = \
                 create_cyberlink(
                     account_name=CYBERD_KEY_NAME,

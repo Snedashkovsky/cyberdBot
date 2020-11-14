@@ -237,7 +237,7 @@ def main_menu(message):
                 f'You already created account',
                 reply_markup=BASE_KEYBOARD)
             return
-        if message.from_user.id > 836000000:
+        if message.from_user.id > 1_400_000_000:
             bot.send_message(
                 message.chat.id,
                 f'Your telegram was recently registered, please use an older account',

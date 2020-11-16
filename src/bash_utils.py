@@ -92,7 +92,7 @@ def create_account(account_name, query=ACCOUNT_CREATION_QUERY):
                 account_data = {'name': account_name,
                                 'address': account_address,
                                 'mnemonic_phrase': account_mnemonic_phrase}
-                logging.error(
+                logging.info(
                     f"Account {account_name} was created. Account address {account_address}")
                 return account_data, None
         logging.error(

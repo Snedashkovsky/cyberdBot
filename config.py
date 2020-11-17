@@ -41,12 +41,19 @@ SCHEDULER_TIME = 60 * 60
 
 # Base Menu
 BASE_MENU = ['Create cyberLink', 'Upload to IPFS', 'Sign up',
-             'Jail check', 'Validator list', 'Jail check settings'
-             ]
-BASE_MENU_LOWER = list(map(str.lower, BASE_MENU))
+             'Jail check', 'Validator list', 'Jail check settings']
 BASE_KEYBOARD = ReplyKeyboardMarkup(True, True)
 BASE_KEYBOARD.add(BASE_MENU[0], BASE_MENU[1], BASE_MENU[2])
 BASE_KEYBOARD.add(BASE_MENU[3], BASE_MENU[4], BASE_MENU[5])
+
+# BASE Menu after Sign up
+BASE_AFTER_SIGN_UP_MENU = ['Create cyberLink', 'Upload to IPFS', 'Tweet',
+                           'Jail check', 'Validator list', 'Jail check settings']
+BASE_AFTER_SIGN_UP_KEYBOARD = ReplyKeyboardMarkup(True, True)
+BASE_AFTER_SIGN_UP_KEYBOARD.add(BASE_AFTER_SIGN_UP_MENU[0], BASE_AFTER_SIGN_UP_MENU[1], BASE_AFTER_SIGN_UP_MENU[2])
+BASE_AFTER_SIGN_UP_KEYBOARD.add(BASE_AFTER_SIGN_UP_MENU[3], BASE_AFTER_SIGN_UP_MENU[4], BASE_AFTER_SIGN_UP_MENU[5])
+
+BASE_MENU_LOWER = set(map(str.lower, BASE_MENU + BASE_AFTER_SIGN_UP_MENU))
 
 # Jail Monitoring Menu
 MONITORING_MENU = ['Add validator moniker', 'Reset validator moniker',

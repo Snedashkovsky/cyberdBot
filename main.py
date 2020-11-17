@@ -6,8 +6,8 @@ import logging
 
 from src.bot_utils import send_ipfs_notification, jail_check, dict_to_md_list, message_upload_to_ipfs
 from src.bash_utils import validators_state, create_cyberlink, create_account, transfer_eul_tokens
-from config import CYBERD_KEY_NAME, BASE_MENU_LOWER, MONITORING_MENU_LOWER, BASE_KEYBOARD, MONITORING_KEYBOARD, \
-    DEV_MODE, States, bot, db_worker
+from config import CYBERD_KEY_NAME, BASE_MENU_LOWER, MONITORING_MENU_LOWER, BASE_KEYBOARD, \
+    BASE_AFTER_SIGN_UP_KEYBOARD, MONITORING_KEYBOARD, DEV_MODE, States, bot, db_worker
 
 # Create directory for temporary files
 try:
@@ -37,6 +37,13 @@ state = defaultdict(lambda: States.S_START, key='some_value')
 cyberlink_startpoint_ipfs_hash = defaultdict(lambda: None, key='some_value')
 
 
+@staticmethod
+def base_keyboard_reply_markup(user_id):
+    if db_worker.check_sign_user(user_id):
+        return BASE_AFTER_SIGN_UP_KEYBOARD
+    return BASE_KEYBOARD
+
+
 @bot.message_handler(
     content_types=['new_chat_members', 'left_chat_member', 'new_chat_title', 'new_chat_photo', 'delete_chat_photo',
                    'group_chat_created', 'supergroup_chat_created', 'channel_chat_created', 'migrate_to_chat_id',
@@ -50,7 +57,7 @@ def chat_unsupported_content_types(message):
     bot.send_message(
         message.chat.id,
         f'Unsupported message type: {message.content_type}',
-        reply_markup=BASE_KEYBOARD)
+        reply_markup=base_keyboard_reply_markup(message.from_user.id))
 
 
 @bot.message_handler(commands=['start'])
@@ -61,7 +68,7 @@ def start_message(message):
         message.chat.id,
         'Hello {}!\nI can create cyberLinks, upload content to IPFS and check monitor validator jail status.'.format(
             message.from_user.username),
-        reply_markup=BASE_KEYBOARD)
+        reply_markup=base_keyboard_reply_markup(message.from_user.id))
 
 
 @bot.message_handler(
@@ -120,13 +127,13 @@ def endpoint_cyberlink(message):
                 f'CyberLink created: https://cyber.page/network/euler/tx/{cyberlink_hash} \n'
                 f'Transaction hash: <u>{cyberlink_hash}</u> ',
                 parse_mode='HTML',
-                reply_markup=BASE_KEYBOARD)
+                reply_markup=base_keyboard_reply_markup(message.from_user.id))
             bot.send_message(
                 message.chat.id,
                 f'from: https://ipfs.io/ipfs/{cyberlink_startpoint_ipfs_hash[message.chat.id]}\n'
                 f'to: https://ipfs.io/ipfs/{ipfs_hash}',
                 parse_mode='HTML',
-                reply_markup=BASE_KEYBOARD)
+                reply_markup=base_keyboard_reply_markup(message.from_user.id))
             db_worker.write_cyberlink(
                 user_id=message.from_user.id,
                 cyberlink_hash=cyberlink_hash,
@@ -142,18 +149,18 @@ def endpoint_cyberlink(message):
                         'Congratulations!\n'
                         'You have created 10 links.\n'
                         '7,500,000 EUL Tokens have been transferred to your account!',
-                        reply_markup=BASE_KEYBOARD)
+                        reply_markup=base_keyboard_reply_markup(message.from_user.id))
                 else:
                     bot.send_message(
                         message.chat.id,
                         f'Tokens was not transferred.\nError: {transfer_error}',
-                        reply_markup=BASE_KEYBOARD)
+                        reply_markup=base_keyboard_reply_markup(message.from_user.id))
         elif cyberlink_error:
             bot.send_message(
                 message.chat.id,
                 f'CyberLink not created\n'
                 f'error: {cyberlink_error}',
-                reply_markup=BASE_KEYBOARD)
+                reply_markup=base_keyboard_reply_markup(message.from_user.id))
         bot.send_message(
             message.chat.id,
             'Please enter a keyword as a starting point for a new cyberLink or choose another service from the menu.\n'
@@ -161,7 +168,7 @@ def endpoint_cyberlink(message):
             'Please enter a keyword by which your content will be searchable in cyber, this will create the first part '
             'of the cyberlink.\n'
             'Please remember to be gentle, the search is case-senstive.',
-            reply_markup=BASE_KEYBOARD)
+            reply_markup=base_keyboard_reply_markup(message.from_user.id))
 
 
 @bot.message_handler(
@@ -171,7 +178,7 @@ def send_message_when_start_state(message):
     bot.send_message(
         message.chat.id,
         'Please press "Create cyberLink" or the "Upload to IPFS" button to upload this file',
-        reply_markup=BASE_KEYBOARD)
+        reply_markup=base_keyboard_reply_markup(message.from_user.id))
 
 
 @bot.message_handler(
@@ -200,7 +207,7 @@ def main_menu(message):
             message.chat.id,
             '{}'.format(dict_to_md_list(validators_dict)),
             parse_mode="HTML",
-            reply_markup=BASE_KEYBOARD)
+            reply_markup=base_keyboard_reply_markup(message.from_user.id))
     elif message.text.lower() == 'jail check settings':
         state[message.chat.id] = States.S_MONITORING
         bot.send_message(
@@ -212,7 +219,7 @@ def main_menu(message):
         bot.send_message(
             message.chat.id,
             'Please send URL, text, file, photo, video, audio, contact, location, video or voice',
-            reply_markup=BASE_KEYBOARD)
+            reply_markup=base_keyboard_reply_markup(message.from_user.id))
     elif message.text.lower() == 'create cyberlink':
         if db_worker.check_sign_user(message.from_user.id):
             state[message.chat.id] = States.S_STARTPOINT_CYBERLINK
@@ -224,24 +231,24 @@ def main_menu(message):
                 'Please enter a keyword by which your content will be searchable in cyber, this will create the first part '
                 'of the cyberLink.\n'
                 'Please remember to be gentle, the search is case-senstive.',
-                reply_markup=BASE_KEYBOARD)
+                reply_markup=base_keyboard_reply_markup(message.from_user.id))
         else:
             bot.send_message(
                 message.chat.id,
                 'Please create an account before creating cyberLinks',
-                reply_markup=BASE_KEYBOARD)
+                reply_markup=base_keyboard_reply_markup(message.from_user.id))
     elif message.text.lower() == 'sign up':
         if db_worker.check_sign_user(message.from_user.id):
             bot.send_message(
                 message.chat.id,
                 f'You already created account',
-                reply_markup=BASE_KEYBOARD)
+                reply_markup=base_keyboard_reply_markup(message.from_user.id))
             return
         if message.from_user.id > 1_400_000_000:
             bot.send_message(
                 message.chat.id,
                 f'Your telegram was recently registered, please use an older account',
-                reply_markup=BASE_KEYBOARD)
+                reply_markup=base_keyboard_reply_markup(message.from_user.id))
             return
         state[message.chat.id] = States.S_SIGNUP
         bot.send_message(
@@ -251,11 +258,11 @@ def main_menu(message):
             'Your use of this bot is voluntary and at your sole risk.\n'
             'In the event of any loss, hack or theft of EUL tokens from your account, you acknowledge and confirm '
             'that you shall have no right(s), claim(s) or causes of action in any way whatsoever against us.',
-            reply_markup=BASE_KEYBOARD)
+            reply_markup=base_keyboard_reply_markup(message.from_user.id))
         bot.send_message(
             message.chat.id,
             'Choose a name for your cyber account. Remember that the name will be case sensitive',
-            reply_markup=BASE_KEYBOARD)
+            reply_markup=base_keyboard_reply_markup(message.from_user.id))
 
 
 @bot.message_handler(
@@ -308,7 +315,7 @@ def monitoring_menu(message):
         bot.send_message(
             message.chat.id,
             'Main Menu',
-            reply_markup=BASE_KEYBOARD)
+            reply_markup=base_keyboard_reply_markup(message.from_user.id))
 
 
 @bot.message_handler(
@@ -352,7 +359,7 @@ def sign_up_user(message):
             message.chat.id,
             'Your account name contains more than 20 characters.\n'
             'Please enter a different account name.',
-            reply_markup=BASE_KEYBOARD)
+            reply_markup=base_keyboard_reply_markup(message.from_user.id))
         return
     if re.match("^[A-Za-z0-9_-]*$", account_name):
         account_data, create_account_error = create_account(account_name)
@@ -361,7 +368,7 @@ def sign_up_user(message):
             message.chat.id,
             'Your account name should only contain letters and numbers.\n'
             'Please enter a different account name.',
-            reply_markup=BASE_KEYBOARD)
+            reply_markup=base_keyboard_reply_markup(message.from_user.id))
         return
     if account_data:
         try:
@@ -378,7 +385,7 @@ def sign_up_user(message):
             f'The mnemonic is the only way to recover your account. '
             f'There is no way of recovering any funds if you lose it.',
             parse_mode="HTML",
-            reply_markup=BASE_KEYBOARD)
+            reply_markup=base_keyboard_reply_markup(message.from_user.id))
         transfer_state, transfer_error = transfer_eul_tokens(account_data["address"])
         if transfer_state:
             bot.send_message(
@@ -386,18 +393,18 @@ def sign_up_user(message):
                 'I have transferred 2,500,000 EUL to you account.\n'
                 'You can create cyberlinks now!\n'
                 'If you create more than 10 cyberlinks, I will transfer an additional 7,500,000 EUL to your account!',
-                reply_markup=BASE_KEYBOARD)
+                reply_markup=base_keyboard_reply_markup(message.from_user.id))
         else:
             bot.send_message(
                 message.chat.id,
                 f'Tokens was not transferred.\nError: {transfer_error}',
-                reply_markup=BASE_KEYBOARD)
+                reply_markup=base_keyboard_reply_markup(message.from_user.id))
     else:
         bot.send_message(
             message.chat.id,
             f'Account not created\n'
             f'error: {create_account_error}',
-            reply_markup=BASE_KEYBOARD)
+            reply_markup=base_keyboard_reply_markup(message.from_user.id))
 
 
 if __name__ == '__main__':

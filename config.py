@@ -65,12 +65,23 @@ MONITORING_KEYBOARD.add(MONITORING_MENU[0], MONITORING_MENU[1])
 MONITORING_KEYBOARD.add(MONITORING_MENU[2], MONITORING_MENU[3], MONITORING_MENU[4])
 MONITORING_KEYBOARD.add(MONITORING_MENU[5])
 
+# Tweet Menu
+TWEETER_MENU = ['New Tweet', 'Answer', 'Set Like', 'Share', 'Back to Main']
+TWEETER_MENU_LOWER = list(map(str.lower, TWEETER_MENU))
+TWEETER_KEYBOARD = ReplyKeyboardMarkup(True, True)
+TWEETER_KEYBOARD.add(TWEETER_MENU[0], TWEETER_MENU[1], TWEETER_MENU[2])
+TWEETER_KEYBOARD.add(TWEETER_MENU[3], TWEETER_MENU[4])
+
 
 # default status class
 class States(Enum):
-    S_START = 0  # Start position
-    S_UPLOAD_IPFS = 1  # Upload content to IPFS
-    S_STARTPOINT_CYBERLINK = 2  # Set starting point of cyberlink
-    S_ENDPOINT_CYBERLINK = 3  # Set endpoint of cyberlink
+    S_START = 0  # Start a position
+    S_UPLOAD_IPFS = 1  # Upload a content to IPFS
+    S_STARTPOINT_CYBERLINK = 2  # Set a starting point of cyberlink
+    S_ENDPOINT_CYBERLINK = 3  # Set a endpoint of cyberlink
     S_MONITORING = 4  # Jail checker
-    S_SIGNUP = 5  # Sign up new cyberd account
+    S_SIGNUP = 5  # Sign up a new cyberd account
+    S_NEW_TWEET = 6  # Upload a New Tweet
+    S_ANSWER_TWEET = 7  # Answer on a Tweet
+    S_LIKE_TWEET = 8  # Like a Tweet
+    S_SHARE_TWEET = 9  # Share a Tweet

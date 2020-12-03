@@ -23,6 +23,9 @@ ACCOUNT_CREATION_QUERY = os.getenv('ACCOUNT_CREATION_QUERY', './src/create_accou
 # Shell query for transfer EUL tokens to new account
 TRANSFER_EUL_QUERY = os.getenv('TRANSFER_EUL_QUERY', './src/transfer_eul_tokens.sh')
 
+# Shell query for unjail validator
+UNJAIL_VALIDATOR_QUERY = os.getenv('UNJAIL_VALIDATOR_QUERY', './src/unjail_validator.sh')
+
 # Development mode for easy bot stop
 DEV_MODE = int(os.getenv('DEV_MODE', 0))
 

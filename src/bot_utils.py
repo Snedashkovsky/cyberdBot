@@ -1,10 +1,20 @@
 from requests import get
 from telebot import apihelper
 from json import dumps
+from os import mkdir
 
 from src.bash_utils import validators_state
 from src.ipfs_utils import upload_text, upload_file
 from config import BASE_KEYBOARD, TELEBOT_TOKEN, db_worker, bot
+
+
+def create_temp_directory():
+    try:
+        mkdir('temp')
+    except OSError:
+        print('Creation of the directory "temp" failed. Maybe directory already exists.')
+    else:
+        print('Successfully created the directory "temp".')
 
 
 def dict_to_md_list(input_dict):

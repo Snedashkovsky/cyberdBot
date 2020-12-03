@@ -1,36 +1,24 @@
 from collections import defaultdict
 import time
-from os import mkdir
 import re
 import logging
 
-from src.bot_utils import send_ipfs_notification, jail_check, dict_to_md_list, message_upload_to_ipfs
+from src.bot_utils import create_temp_directory, send_ipfs_notification, jail_check, dict_to_md_list, message_upload_to_ipfs
 from src.bash_utils import validators_state, create_cyberlink, create_account, transfer_eul_tokens
 from config import CYBERD_KEY_NAME, BASE_MENU_LOWER, MONITORING_MENU_LOWER, TWEETER_MENU_LOWER, BASE_KEYBOARD, \
     BASE_AFTER_SIGN_UP_KEYBOARD, MONITORING_KEYBOARD, TWEETER_KEYBOARD, DEV_MODE, States, bot, db_worker
 
 # Create directory for temporary files
-try:
-    mkdir('temp')
-except OSError:
-    print('Creation of the directory "temp" failed. Maybe directory already exists.')
-else:
-    print('Successfully created the directory "temp".')
+create_temp_directory()
 
 # Set logging format
 logging.basicConfig(filename='cyberdbot.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Drop tables
-# db_worker.drop_table_monikers()
-# db_worker.drop_table_scheduler()
-# db_worker.drop_table_accounts()
-# db_worker.drop_table_cyberlinks()
+# db_worker.drop_all_tables()
 
 # Create tables
-db_worker.create_table_monikers()
-db_worker.create_table_scheduler()
-db_worker.create_table_accounts()
-db_worker.create_table_cyberlinks()
+db_worker.create_all_tables()
 
 # Create dictionaries
 state = defaultdict(lambda: States.S_START, key='some_value')
@@ -82,9 +70,9 @@ def files_upload_to_ipfs(message):
 
 
 @bot.message_handler(
-    func=lambda message: (((message.content_type == 'text') and (message.text.lower() not in BASE_MENU_LOWER)) or \
+    func=lambda message: (((message.content_type == 'text') and (message.text.lower() not in BASE_MENU_LOWER)) or
                           (message.content_type in ('audio', 'contact', 'document', 'location',
-                                                    'photo', 'video', 'video_note', 'voice'))) \
+                                                    'photo', 'video', 'video_note', 'voice')))
                          and (state[message.chat.id] == States.S_STARTPOINT_CYBERLINK),
     content_types=['text', 'audio', 'contact', 'document', 'location', 'photo', 'video', 'video_note', 'voice'])
 def startpoint_cyberlink(message):
@@ -99,9 +87,9 @@ def startpoint_cyberlink(message):
 
 
 @bot.message_handler(
-    func=lambda message: (((message.content_type == 'text') and (message.text.lower() not in BASE_MENU_LOWER)) or \
+    func=lambda message: (((message.content_type == 'text') and (message.text.lower() not in BASE_MENU_LOWER)) or
                           (message.content_type in ('audio', 'contact', 'document', 'location',
-                                                    'photo', 'video', 'video_note', 'voice'))) \
+                                                    'photo', 'video', 'video_note', 'voice')))
                          & (state[message.chat.id] == States.S_ENDPOINT_CYBERLINK),
     content_types=['audio', 'contact', 'document', 'location', 'photo', 'text', 'video', 'video_note', 'voice'])
 def endpoint_cyberlink(message):

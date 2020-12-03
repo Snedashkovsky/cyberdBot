@@ -39,6 +39,12 @@ class SQLighter:
             return self.cursor.execute(
                 '''DROP TABLE IF EXISTS cyberlinks''').fetchall()
 
+    def drop_all_tables(self):
+        self.drop_table_monikers()
+        self.drop_table_scheduler()
+        self.drop_table_accounts()
+        self.create_table_cyberlinks()
+
     def create_table_monikers(self):
         """ Create monikers table """
         with self.connection:
@@ -77,6 +83,12 @@ class SQLighter:
                        from_ipfs_hash STRING NOT NULL,
                        to_ipfs_hash STRING NOT NULL,
                        ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''').fetchall()
+
+    def create_all_tables(self):
+        self.create_table_monikers()
+        self.create_table_scheduler()
+        self.create_table_accounts()
+        self.create_table_cyberlinks()
 
     def get_all_monikers(self):
         """ Get all chat ids and monikers lists """

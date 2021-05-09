@@ -1,7 +1,8 @@
 from subprocess import Popen, PIPE
 import logging
 
-from config import VALIDATOR_QUERY, CYBERLINK_CREATION_QUERY, ACCOUNT_CREATION_QUERY, TRANSFER_EUL_QUERY
+from config import VALIDATOR_QUERY, CYBERLINK_CREATION_QUERY, ACCOUNT_CREATION_QUERY, TRANSFER_EUL_QUERY, \
+                   UNJAIL_VALIDATOR_QUERY
 
 
 def execute_bash(bash_command):
@@ -19,7 +20,7 @@ def validators_state(shell_query=VALIDATOR_QUERY):
         output, error_execute_bash = execute_bash(shell_query)
         if error_execute_bash:
             logging.error(
-                f"Validator state error {error_execute_bash}")
+                f"Validator state was not got. Error {error_execute_bash}")
             return None, error_execute_bash
         validator_data_list = extract_from_console(output, ['jailed', 'moniker'])
         keys = [item[1] for item in validator_data_list[1::2]]
@@ -28,7 +29,7 @@ def validators_state(shell_query=VALIDATOR_QUERY):
         return dict(zip(keys, values)), None
     except Exception as error_parsing:
         logging.error(
-            f"Validator state error {error_parsing}")
+            f"Validator state was not got. Error {error_parsing}")
         return None, error_parsing
 
 
@@ -55,8 +56,8 @@ def create_cyberlink(account_name, from_hash, to_hash, query=CYBERLINK_CREATION_
         output, error_execute_bash = execute_bash(f'{query} {account_name} {from_hash} {to_hash}')
         if error_execute_bash:
             logging.error(
-                f"cyberLink was not created. Account {account_name}, from {from_hash}, to {to_hash} "
-                f"error {error_execute_bash}")
+                f"cyberLink was not created. Account {account_name}, from {from_hash}, to {to_hash}. "
+                f"Error {error_execute_bash}")
             return None, error_execute_bash
         rawlog = extract_from_console(output, ['rawlog'])[0][1]
         if rawlog == 'not enough personal bandwidth'.replace(' ', ''):
@@ -70,7 +71,7 @@ def create_cyberlink(account_name, from_hash, to_hash, query=CYBERLINK_CREATION_
         return tx_hash, None
     except Exception as error_parsing:
         logging.error(
-            f"cyberLink was not created. Account {account_name}, from {from_hash}, to {to_hash} error {error_parsing}")
+            f"cyberLink was not created. Account {account_name}, from {from_hash}, to {to_hash}. Error {error_parsing}")
         return None, error_parsing
 
 
@@ -114,9 +115,27 @@ def transfer_eul_tokens(account_address, value=2_500_000, query=TRANSFER_EUL_QUE
                 f"txhash {extract_from_console(output, ['txhash'])}")
             return True, None
         logging.error(
-            f"Tokens was not transferred to {account_address} value {value}EUL error {error_execute_bash}")
+            f"Tokens was not transferred to {account_address} value {value}EUL. Error {error_execute_bash}")
         return None, error_execute_bash
     except Exception as error_transfer_tokens:
         logging.error(
-            f"Tokens was not transferred to {account_address} value {value}EUL error {error_transfer_tokens}")
+            f"Tokens was not transferred to {account_address} value {value}EUL. Error {error_transfer_tokens}")
+        return None, error_transfer_tokens
+
+
+def unjail_validator(query=UNJAIL_VALIDATOR_QUERY):
+    try:
+        output, error_execute_bash = \
+            execute_bash(f'{query}')
+        if len(extract_from_console(output, ['txhash'])) > 0:
+            logging.info(
+                f"Unjail transaction was completed successfully"
+                f"txhash {extract_from_console(output, ['txhash'])}")
+            return True, None
+        logging.error(
+            f"Unjail transaction was not completed successfully. Error {error_execute_bash}")
+        return None, error_execute_bash
+    except Exception as error_transfer_tokens:
+        logging.error(
+            f"Unjail transaction was not completed successfully. Error {error_transfer_tokens}")
         return None, error_transfer_tokens

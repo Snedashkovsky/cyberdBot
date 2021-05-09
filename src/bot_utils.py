@@ -1,10 +1,20 @@
 from requests import get
 from telebot import apihelper
 from json import dumps
+from os import mkdir
 
 from src.bash_utils import validators_state
 from src.ipfs_utils import upload_text, upload_file
 from config import BASE_KEYBOARD, TELEBOT_TOKEN, db_worker, bot
+
+
+def create_temp_directory():
+    try:
+        mkdir('temp')
+    except OSError:
+        print('Creation of the directory "temp" failed. Maybe directory already exists.')
+    else:
+        print('Successfully created the directory "temp".')
 
 
 def dict_to_md_list(input_dict):
@@ -55,12 +65,14 @@ def download_file_from_telegram(message, file_id):
     return
 
 
-def message_upload_to_ipfs(message):
+def message_upload_to_ipfs(message, lower_transform=True):
     if message.content_type == 'text':
-        # TODO add condition for check IPFS Hash
+        # TODO add conditions for checking IPFS Hash
         if len(message.text) == 46:
             return message.text, None
-        return upload_text(message.text.lower())
+        elif lower_transform and len(message.text) < 46:
+            return upload_text(message.text.lower())
+        return upload_text(message.text)
     elif message.content_type in ('audio', 'video', 'video_note', 'voice'):
         file_id = message.json[message.content_type]['file_id']
     elif message.content_type == 'document':

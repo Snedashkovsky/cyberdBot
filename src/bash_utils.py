@@ -105,7 +105,7 @@ def create_account(account_name, query=ACCOUNT_CREATION_QUERY):
         return None, error_account_creation
 
 
-def transfer_eul_tokens(account_address, value=2_500_000, query=TRANSFER_EUL_QUERY):
+def transfer_eul_tokens(account_address, value, query=TRANSFER_EUL_QUERY):
     try:
         output, error_execute_bash = \
             execute_bash(f'{query} {account_address} {str(value)+"eul"}')

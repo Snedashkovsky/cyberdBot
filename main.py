@@ -129,7 +129,7 @@ def endpoint_cyberlink(message):
             if db_worker.get_cyberlink_count(user_id=message.from_user.id) == 10:
                 transfer_state, transfer_error = transfer_eul_tokens(
                     account_address=db_worker.get_account_address(user_id=message.from_user.id),
-                    value=7_500_000)
+                    value=90_000_000)
                 if transfer_state:
                     bot.send_message(
                         message.chat.id,
@@ -387,7 +387,9 @@ def sign_up_user(message):
             f'There is no way of recovering any funds if you lose it.',
             parse_mode="HTML",
             reply_markup=base_keyboard_reply_markup(message.from_user.id))
-        transfer_state, transfer_error = transfer_eul_tokens(account_data["address"])
+        transfer_state, transfer_error = transfer_eul_tokens(
+            account_address=account_data["address"],
+            value=10_000_000)
         if transfer_state:
             bot.send_message(
                 message.chat.id,
@@ -447,7 +449,7 @@ def add_tweet(message):
             if db_worker.get_cyberlink_count(user_id=message.from_user.id) == 10:
                 transfer_state, transfer_error = transfer_eul_tokens(
                     account_address=db_worker.get_account_address(user_id=message.from_user.id),
-                    value=7_500_000)
+                    value=90_000_000)
                 if transfer_state:
                     bot.send_message(
                         message.chat.id,

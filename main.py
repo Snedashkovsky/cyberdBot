@@ -6,7 +6,7 @@ import logging
 from src.bot_utils import create_temp_directory, send_ipfs_notification, jail_check, dict_to_md_list, message_upload_to_ipfs
 from src.bash_utils import validators_state, create_cyberlink, create_account, transfer_eul_tokens
 from config import CYBERD_KEY_NAME, BASE_MENU_LOWER, MONITORING_MENU_LOWER, TWEETER_MENU_LOWER, BASE_KEYBOARD, \
-    BASE_AFTER_SIGN_UP_KEYBOARD, MONITORING_KEYBOARD, TWEETER_KEYBOARD, DEV_MODE, States, bot, db_worker
+    BASE_AFTER_SIGN_UP_KEYBOARD, MONITORING_KEYBOARD, TWEETER_KEYBOARD, TWEET_HASH, DEV_MODE, States, bot, db_worker
 
 # Create directory for temporary files
 create_temp_directory()
@@ -70,10 +70,10 @@ def files_upload_to_ipfs(message):
 
 
 @bot.message_handler(
-    func=lambda message: (((message.content_type == 'text') and (message.text.lower() not in BASE_MENU_LOWER)) or
-                          (message.content_type in ('audio', 'contact', 'document', 'location',
-                                                    'photo', 'video', 'video_note', 'voice')))
-                         and (state[message.chat.id] == States.S_STARTPOINT_CYBERLINK),
+    func=lambda message: (((message.content_type == 'text') & (message.text.lower() not in BASE_MENU_LOWER))
+                          | (message.content_type in ('audio', 'contact', 'document', 'location',
+                                                      'photo', 'video', 'video_note', 'voice')))
+                         & (state[message.chat.id] == States.S_STARTPOINT_CYBERLINK),
     content_types=['text', 'audio', 'contact', 'document', 'location', 'photo', 'video', 'video_note', 'voice'])
 def startpoint_cyberlink(message):
     ipfs_hash, error = message_upload_to_ipfs(message)
@@ -87,9 +87,9 @@ def startpoint_cyberlink(message):
 
 
 @bot.message_handler(
-    func=lambda message: (((message.content_type == 'text') and (message.text.lower() not in BASE_MENU_LOWER)) or
-                          (message.content_type in ('audio', 'contact', 'document', 'location',
-                                                    'photo', 'video', 'video_note', 'voice')))
+    func=lambda message: (((message.content_type == 'text') & (message.text.lower() not in BASE_MENU_LOWER))
+                          | (message.content_type in ('audio', 'contact', 'document', 'location',
+                                                      'photo', 'video', 'video_note', 'voice')))
                          & (state[message.chat.id] == States.S_ENDPOINT_CYBERLINK),
     content_types=['audio', 'contact', 'document', 'location', 'photo', 'text', 'video', 'video_note', 'voice'])
 def endpoint_cyberlink(message):
@@ -212,12 +212,13 @@ def main_menu(message):
             state[message.chat.id] = States.S_STARTPOINT_CYBERLINK
             bot.send_message(
                 message.chat.id,
-                'Please enter a keyword as a starting point for a new cyberLink or choose another service from the menu.\n'
-                'You may enter an text, cyberLink, IPFS hash, URL, file, photo, video, audio, contact, location, video or '
-                'voice.\n'
-                'Please enter a keyword by which your content will be searchable in cyber, this will create the first part '
-                'of the cyberLink.\n'
-                'Please remember to be gentle, the search is case-senstive.',
+                'Please enter a keyword as a starting point for a new cyberLink or choose another service from the '
+                'menu.\n'
+                'You may enter an text, cyberLink, IPFS hash, URL, file, photo, video, audio, contact, location, video '
+                'or voice.\n'
+                'Please enter a keyword by which your content will be searchable in cyber, this will create '
+                'the first part of the cyberLink.\n'
+                'Please remember to be gentle, the search is case-sensitive.',
                 reply_markup=base_keyboard_reply_markup(message.from_user.id))
         else:
             bot.send_message(
@@ -260,7 +261,8 @@ def main_menu(message):
         state[message.chat.id] = States.S_NEW_TWEET
         bot.send_message(
             message.chat.id,
-            'Please send new tweet as text, file, photo, video, audio, IPFS hash, URL, contact, location, video or voice',
+            'Please send new tweet as text, file, photo, video, audio, IPFS hash, URL, contact, location, '
+            'video or voice',
             reply_markup=TWEETER_KEYBOARD)
 
 
@@ -403,6 +405,92 @@ def sign_up_user(message):
             message.chat.id,
             f'Account not created\n'
             f'error: {create_account_error}',
+            reply_markup=base_keyboard_reply_markup(message.from_user.id))
+
+
+@bot.message_handler(
+    func=lambda message: (((message.content_type == 'text')
+                           & (message.text.lower() not in list(set().union(TWEETER_MENU_LOWER, BASE_MENU_LOWER))))
+                          | (message.content_type in ('audio', 'contact', 'document', 'location',
+                                                       'photo', 'video', 'video_note', 'voice')))
+                          & (state[message.chat.id] == States.S_NEW_TWEET),
+    content_types=['audio', 'contact', 'document', 'location', 'photo', 'text', 'video', 'video_note', 'voice'])
+def add_tweet(message):
+    ipfs_hash, ipfs_error = message_upload_to_ipfs(message, lower_transform=False)
+    send_ipfs_notification(message, ipfs_hash, ipfs_error, message_text=None)
+    if ipfs_hash:
+        cyberlink_hash, cyberlink_error = \
+            create_cyberlink(
+                account_name=db_worker.get_account_name(message.from_user.id),
+                from_hash=TWEET_HASH,
+                to_hash=ipfs_hash)
+        if cyberlink_error == 'not enough personal bandwidth':
+            bot.send_message(
+                message.chat.id,
+                f'Tweet not created\n'
+                f'You have not enough personal bandwidth',
+                reply_markup=TWEETER_KEYBOARD)
+            return
+        elif cyberlink_hash:
+            bot.send_message(
+                message.chat.id,
+                f'Tweet created:\n'
+                f'https://cyber.page/ipfs/{ipfs_hash}\n'
+                f'cyberLink: https://cyber.page/network/euler/tx/{cyberlink_hash}\n',
+                parse_mode='HTML',
+                reply_markup=TWEETER_KEYBOARD)
+            db_worker.write_cyberlink(
+                user_id=message.from_user.id,
+                cyberlink_hash=cyberlink_hash,
+                from_ipfs_hash=TWEET_HASH,
+                to_ipfs_hash=ipfs_hash)
+            if db_worker.get_cyberlink_count(user_id=message.from_user.id) == 10:
+                transfer_state, transfer_error = transfer_eul_tokens(
+                    account_address=db_worker.get_account_address(user_id=message.from_user.id),
+                    value=7_500_000)
+                if transfer_state:
+                    bot.send_message(
+                        message.chat.id,
+                        'Congratulations!\n'
+                        'You have created 10 links.\n'
+                        '7,500,000 EUL Tokens have been transferred to your account!',
+                        reply_markup=TWEETER_KEYBOARD)
+                else:
+                    bot.send_message(
+                        message.chat.id,
+                        f'Tokens not transferred.\n'
+                        f'Error: {transfer_error}',
+                        reply_markup=TWEETER_KEYBOARD)
+        elif cyberlink_error:
+            bot.send_message(
+                message.chat.id,
+                f'CyberLink not created\n'
+                f'error: {cyberlink_error}',
+                reply_markup=TWEETER_KEYBOARD)
+        bot.send_message(
+            message.chat.id,
+            'Please send new tweet as text, file, photo, video, audio, IPFS hash, URL, contact, location, '
+            'video or voice',
+            reply_markup=TWEETER_KEYBOARD)
+
+
+@bot.message_handler(
+    func=lambda message: ((message.content_type == 'text')
+                          & (message.text.lower() in TWEETER_MENU_LOWER))
+                         & (state[message.chat.id] == States.S_NEW_TWEET),
+    content_types=['text'])
+def tweet_menu(message):
+    if message.text.lower() == TWEETER_MENU_LOWER[0]:
+        bot.send_message(
+            message.chat.id,
+            'Please send new tweet as text, file, photo, video, audio, IPFS hash, URL, contact, location, '
+            'video or voice',
+            reply_markup=TWEETER_KEYBOARD)
+    elif message.text.lower() == TWEETER_MENU_LOWER[1]:
+        state[message.chat.id] = States.S_START
+        bot.send_message(
+            message.chat.id,
+            'Main Menu',
             reply_markup=base_keyboard_reply_markup(message.from_user.id))
 
 

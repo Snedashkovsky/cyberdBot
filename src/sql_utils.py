@@ -1,4 +1,5 @@
 import sqlite3
+from pandas import DataFrame
 
 
 class SQLighter:
@@ -172,31 +173,41 @@ class SQLighter:
     def write_cyberlink(self, user_id, cyberlink_hash, from_ipfs_hash, to_ipfs_hash):
         with self.connection:
             self.cursor.execute(
-                    f"INSERT INTO cyberlinks (user_id, cyberlink_hash, from_ipfs_hash, to_ipfs_hash)  "
-                    f"VALUES({user_id}, '{cyberlink_hash}', '{from_ipfs_hash}', '{to_ipfs_hash}')").fetchall()
+                f"INSERT INTO cyberlinks (user_id, cyberlink_hash, from_ipfs_hash, to_ipfs_hash)  "
+                f"VALUES({user_id}, '{cyberlink_hash}', '{from_ipfs_hash}', '{to_ipfs_hash}')").fetchall()
 
     def get_account_name(self, user_id):
         with self.connection:
-            return self.cursor.execute(f"SELECT account_name FROM accounts WHERE user_id={user_id}").fetchall()[0][0]
+            return self.cursor.execute(
+                f"SELECT account_name FROM accounts WHERE user_id={user_id}").fetchall()[0][0]
 
     def get_account_address(self, user_id):
         with self.connection:
-            return self.cursor.execute(f"SELECT account_address FROM accounts WHERE user_id={user_id}").fetchall()[0][0]
+            return self.cursor.execute(
+                f"SELECT account_address FROM accounts WHERE user_id={user_id}").fetchall()[0][0]
 
     def get_cyberlink_count(self, user_id):
         with self.connection:
-            return self.cursor.execute(f"SELECT count(*) FROM cyberlinks WHERE user_id={user_id}").fetchall()[0][0]
+            return self.cursor.execute(
+                f"SELECT count(*) FROM cyberlinks WHERE user_id={user_id}").fetchall()[0][0]
 
     def get_total_account_with_full_transfers(self):
         with self.connection:
-            return self.cursor.execute("SELECT count(*) "
-                                       "FROM ("
-                                       "    SELECT "
-                                       "        user_id, "
-                                       "        count(*) as cyberlink_count "
-                                       "    FROM cyberlinks "
-                                       "    GROUP BY user_id "
-                                       "    HAVING cyberlink_count > 10)").fetchall()[0][0]
+            return self.cursor.execute(
+                "SELECT count(*) "
+                "FROM ("
+                "    SELECT "
+                "        user_id, "
+                "        count(*) as cyberlink_count "
+                "    FROM cyberlinks "
+                "    GROUP BY user_id "
+                "    HAVING cyberlink_count > 10)").fetchall()[0][0]
+
+    def get_df(self, query, columns=None):
+        with self.connection:
+            return DataFrame(
+                self.cursor.execute(query).fetchall(),
+                columns=columns)
 
     def close(self):
         """ Close DB connection """

@@ -1,3 +1,4 @@
+from telebot.apihelper import ApiTelegramException
 from src.bash_utils import transfer_eul_tokens
 from config import BASE_AFTER_SIGN_UP_KEYBOARD, db_worker, bot
 
@@ -5,13 +6,13 @@ MESSAGE_TEXT_NEW_USER = '''
 @cyberdBot additionally transferred <b>7.5 MEUL</b> to you.
 If you create <b>10 links</b> with the bot, another <b>90 MEUL</b> will be transferred.
 Remember, EUL tokens will not be migrated to the production network.
-On the other hand, you can participate in <b>Game of Links</b> and get your share of the prize <b>500 GCYB ~ 230 ETH</b>.
+On the other hand, you can participate in the <b>Relevance</b> section of the <b>Game of Links</b> and get your share of the prize <b>500 GCYB ~ 230 ETH</b>.
 Go for it!'''
 MESSAGE_TEXT_LEADER = '''
 @cyberdBot additionally transferred <b>90 MEUL</b> to you.
 Remember, EUL tokens will not be migrated to the production network.
-On the other hand, you can participate in <b>Game of Links</b> and get your share of the prize <b>500 GCYB ~ 230 ETH</b>.
-Your bandwidth is enough to generate <b>100 links per day</b>.
+On the other hand, you can participate in the <b>Relevance</b> section of the <b>Game of Links</b> and get your share of the prize <b>500 GCYB ~ 230 ETH</b>.
+Your bandwidth is enough to generate at least <b>100 links per day</b>.
 Go for it!'''
 
 TRANSFER_VALUE_NEW_USERS = 7_500_000
@@ -60,10 +61,13 @@ if __name__ == '__main__':
                 account_address=row.address,
                 value=transfer_value)
         if transfer_success:
-            bot.send_message(
-                chat_id=row.user_id,
-                text=message_text,
-                parse_mode='HTML',
-                reply_markup=BASE_AFTER_SIGN_UP_KEYBOARD)
+            try:
+                bot.send_message(
+                    chat_id=row.user_id,
+                    text=message_text,
+                    parse_mode='HTML',
+                    reply_markup=BASE_AFTER_SIGN_UP_KEYBOARD)
+            except ApiTelegramException:
+                print('Chat not found')
         else:
             print(f'Unsuccessful transfer {transfer_value} EUL to {row.address}, user id {row.user_id}')

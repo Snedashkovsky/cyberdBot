@@ -3,7 +3,8 @@ import time
 import re
 import logging
 
-from src.bot_utils import create_temp_directory, send_ipfs_notification, jail_check, dict_to_md_list, message_upload_to_ipfs
+from src.bot_utils import create_temp_directory, send_ipfs_notification, jail_check, dict_to_md_list, \
+    message_upload_to_ipfs
 from src.bash_utils import validators_state, create_cyberlink, create_account, transfer_eul_tokens
 from config import CYBERD_KEY_NAME, BASE_MENU_LOWER, MONITORING_MENU_LOWER, TWEETER_MENU_LOWER, BASE_KEYBOARD, \
     BASE_AFTER_SIGN_UP_KEYBOARD, MONITORING_KEYBOARD, TWEETER_KEYBOARD, TWEET_HASH, DEV_MODE, States, bot, db_worker

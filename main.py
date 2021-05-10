@@ -4,7 +4,7 @@ import re
 import logging
 
 from src.bot_utils import create_temp_directory, send_ipfs_notification, jail_check, dict_to_md_list, \
-    message_upload_to_ipfs
+    message_upload_to_ipfs, base_keyboard_reply_markup
 from src.bash_utils import validators_state, create_cyberlink, create_account, transfer_eul_tokens
 from config import CYBERD_KEY_NAME, BASE_MENU_LOWER, MONITORING_MENU_LOWER, TWEETER_MENU_LOWER, BASE_KEYBOARD, \
     BASE_AFTER_SIGN_UP_KEYBOARD, MONITORING_KEYBOARD, TWEETER_KEYBOARD, TWEET_HASH, DEV_MODE, States, bot, db_worker
@@ -24,12 +24,6 @@ db_worker.create_all_tables()
 # Create dictionaries
 state = defaultdict(lambda: States.S_START, key='some_value')
 cyberlink_startpoint_ipfs_hash = defaultdict(lambda: None, key='some_value')
-
-
-def base_keyboard_reply_markup(user_id):
-    if db_worker.check_sign_user(user_id):
-        return BASE_AFTER_SIGN_UP_KEYBOARD
-    return BASE_KEYBOARD
 
 
 @bot.message_handler(
@@ -188,7 +182,7 @@ def text_upload_to_ipfs(message):
 def main_menu(message):
     state[message.chat.id] = States.S_START
     if message.text.lower() == 'jail check':
-        jail_check(message.chat.id)
+        jail_check(message)
     elif message.text.lower() == 'validator list':
         validators_dict, _ = validators_state()
         bot.send_message(
@@ -279,7 +273,7 @@ def monitoring_menu(message):
             'Enter a validator moniker',
             reply_markup=MONITORING_KEYBOARD)
     elif message.text.lower() == 'jail check':
-        jail_check(message.chat.id)
+        jail_check(message)
     elif message.text.lower() == 'reset validator moniker':
         db_worker.reset_moniker(message.chat.id)
         bot.send_message(
@@ -305,7 +299,7 @@ def monitoring_menu(message):
                 message.chat.id,
                 'The following notifications will be sent to you hourly',
                 reply_markup=MONITORING_KEYBOARD)
-            jail_check(message.chat.id)
+            jail_check(message)
         else:
             db_worker.set_scheduler_state(message.chat.id, 0)
             bot.send_message(
@@ -334,14 +328,14 @@ def add_validator_moniker(message):
             message.chat.id,
             'This moniker has already been added',
             reply_markup=MONITORING_KEYBOARD)
-        jail_check(message.chat.id)
+        jail_check(message)
     elif moniker in validators_dict.keys():
         db_worker.add_moniker(message.chat.id, moniker)
         bot.send_message(
             message.chat.id,
             'The moniker has been added',
             reply_markup=MONITORING_KEYBOARD)
-        jail_check(message.chat.id)
+        jail_check(message)
     else:
         bot.send_message(
             message.chat.id,

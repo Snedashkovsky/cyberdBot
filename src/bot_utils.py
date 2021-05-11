@@ -36,7 +36,7 @@ def dict_to_md_list(input_dict):
     return str(srt_from_dict)
 
 
-def jail_check(chat_id):
+def jail_check(chat_id, pressed_button=True):
     moniker_list = db_worker.get_moniker(chat_id)
     moniker_list = moniker_list if moniker_list != [''] else []
     if len(moniker_list) > 0:
@@ -51,7 +51,7 @@ def jail_check(chat_id):
             logging.error(
                 f"The message was not sent. Chat id {chat_id} Error {error_send_message}")
 
-    else:
+    elif pressed_button:
         bot.send_message(
             chat_id,
             'Please set a validator moniker in the `Jail check settings` so I can check it',

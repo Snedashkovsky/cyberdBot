@@ -12,7 +12,7 @@ def check_send_messages():
     while True:
         chat_id_list = db_worker.get_all_scheduler_states()
         for chat_id in chat_id_list:
-            jail_check(chat_id)
+            jail_check(chat_id,  pressed_button=False)
         time.sleep(SCHEDULER_TIME)
 
 

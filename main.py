@@ -182,7 +182,7 @@ def text_upload_to_ipfs(message):
 def main_menu(message):
     state[message.chat.id] = States.S_START
     if message.text.lower() == 'jail check':
-        jail_check(message)
+        jail_check(message.chat.id)
     elif message.text.lower() == 'validator list':
         validators_dict, _ = validators_state()
         bot.send_message(
@@ -273,7 +273,7 @@ def monitoring_menu(message):
             'Enter a validator moniker',
             reply_markup=MONITORING_KEYBOARD)
     elif message.text.lower() == 'jail check':
-        jail_check(message)
+        jail_check(message.chat.id)
     elif message.text.lower() == 'reset validator moniker':
         db_worker.reset_moniker(message.chat.id)
         bot.send_message(
@@ -299,7 +299,7 @@ def monitoring_menu(message):
                 message.chat.id,
                 'The following notifications will be sent to you hourly',
                 reply_markup=MONITORING_KEYBOARD)
-            jail_check(message)
+            jail_check(message.chat.id)
         else:
             db_worker.set_scheduler_state(message.chat.id, 0)
             bot.send_message(
@@ -328,14 +328,14 @@ def add_validator_moniker(message):
             message.chat.id,
             'This moniker has already been added',
             reply_markup=MONITORING_KEYBOARD)
-        jail_check(message)
+        jail_check(message.chat.id)
     elif moniker in validators_dict.keys():
         db_worker.add_moniker(message.chat.id, moniker)
         bot.send_message(
             message.chat.id,
             'The moniker has been added',
             reply_markup=MONITORING_KEYBOARD)
-        jail_check(message)
+        jail_check(message.chat.id)
     else:
         bot.send_message(
             message.chat.id,

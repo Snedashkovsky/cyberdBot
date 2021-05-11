@@ -2,6 +2,8 @@ from requests import get
 from telebot import apihelper
 from json import dumps
 from os import mkdir
+import logging
+from telebot.apihelper import ApiTelegramException
 
 from src.bash_utils import validators_state
 from src.ipfs_utils import upload_text, upload_file
@@ -34,21 +36,26 @@ def dict_to_md_list(input_dict):
     return str(srt_from_dict)
 
 
-def jail_check(message):
-    moniker_list = db_worker.get_moniker(message.chat.id)
+def jail_check(chat_id):
+    moniker_list = db_worker.get_moniker(chat_id)
     moniker_list = moniker_list if moniker_list != [''] else []
     if len(moniker_list) > 0:
         validators_dict, _ = validators_state()
-        bot.send_message(
-            message.chat.id,
-            dict_to_md_list({key: validators_dict[key] for key in moniker_list}),
-            parse_mode='HTML',
-            reply_markup=base_keyboard_reply_markup(message.from_user.id))
+        try:
+            bot.send_message(
+                chat_id,
+                dict_to_md_list({moniker: validators_dict[moniker] for moniker in moniker_list}),
+                parse_mode='HTML',
+                reply_markup=base_keyboard_reply_markup(chat_id))
+        except ApiTelegramException as error_send_message:
+            logging.error(
+                f"The message was not sent. Chat id {chat_id} Error {error_send_message}")
+
     else:
         bot.send_message(
-            message.chat.id,
-            'Please send a validator moniker so I can check it',
-            reply_markup=base_keyboard_reply_markup(message.from_user.id))
+            chat_id,
+            'Please set a validator moniker in the `Jail check settings` so I can check it',
+            reply_markup=base_keyboard_reply_markup(chat_id))
 
 
 def download_file_from_telegram(message, file_id):

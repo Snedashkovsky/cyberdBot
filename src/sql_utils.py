@@ -121,7 +121,6 @@ class SQLighter:
                     WHERE state = 1''').fetchall()
             print(result)
             if len(result) > 0:
-                print([item[0] for item in result])
                 return [item[0] for item in result]
             return []
 

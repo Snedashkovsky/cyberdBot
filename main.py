@@ -495,12 +495,16 @@ if __name__ == '__main__':
 
     if DEV_MODE:
         print('DEV_MODE')
-        bot.polling(none_stop=True)
+        bot.polling(
+            none_stop=True,
+            timeout=100)
     else:
         # Handler to avoid disconnection
         while True:
             try:
-                bot.polling(none_stop=True)
+                bot.polling(
+                    none_stop=True,
+                    timeout=100)
             except Exception as e:
                 print(e)
                 # restart in 15 sec

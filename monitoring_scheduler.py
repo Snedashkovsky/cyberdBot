@@ -1,23 +1,12 @@
-
 import time
 
 from src.bash_utils import validators_state
+from src.bot_utils import base_keyboard_reply_markup, dict_to_md_list
 from config import BASE_KEYBOARD, SCHEDULER_TIME, DEV_MODE, bot, db_worker
 
 
-db_worker.create_table_monikers()
-db_worker.create_table_scheduler()
-
-
-def dict_to_md_list(input_dict):
-    srt_from_dict = ''''''
-    for key in sorted(list(input_dict.keys())):
-        if input_dict[key] == 'jailed':
-            srt_from_dict += f'''- <u><b>{key}: {input_dict[key]} </b></u>\n'''
-            pass
-        else:
-            srt_from_dict += f'''- {key}: {input_dict[key]}\n'''
-    return str(srt_from_dict)
+# Create tables
+db_worker.create_all_tables()
 
 
 def jail_check(chat_id):

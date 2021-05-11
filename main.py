@@ -4,10 +4,10 @@ import re
 import logging
 
 from src.bot_utils import create_temp_directory, send_ipfs_notification, jail_check, dict_to_md_list, \
-    message_upload_to_ipfs
+    message_upload_to_ipfs, base_keyboard_reply_markup
 from src.bash_utils import validators_state, create_cyberlink, create_account, transfer_eul_tokens
-from config import CYBERD_KEY_NAME, BASE_MENU_LOWER, MONITORING_MENU_LOWER, TWEETER_MENU_LOWER, BASE_KEYBOARD, \
-    BASE_AFTER_SIGN_UP_KEYBOARD, MONITORING_KEYBOARD, TWEETER_KEYBOARD, TWEET_HASH, DEV_MODE, States, bot, db_worker
+from config import CYBERD_KEY_NAME, BASE_MENU_LOWER, MONITORING_MENU_LOWER, TWEETER_MENU_LOWER, MONITORING_KEYBOARD, \
+    TWEETER_KEYBOARD, TWEET_HASH, DEV_MODE, States, bot, db_worker
 
 # Create directory for temporary files
 create_temp_directory()
@@ -24,12 +24,6 @@ db_worker.create_all_tables()
 # Create dictionaries
 state = defaultdict(lambda: States.S_START, key='some_value')
 cyberlink_startpoint_ipfs_hash = defaultdict(lambda: None, key='some_value')
-
-
-def base_keyboard_reply_markup(user_id):
-    if db_worker.check_sign_user(user_id):
-        return BASE_AFTER_SIGN_UP_KEYBOARD
-    return BASE_KEYBOARD
 
 
 @bot.message_handler(

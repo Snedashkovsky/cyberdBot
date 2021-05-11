@@ -2,10 +2,18 @@ from requests import get
 from telebot import apihelper
 from json import dumps
 from os import mkdir
+import logging
+from telebot.apihelper import ApiTelegramException
 
 from src.bash_utils import validators_state
 from src.ipfs_utils import upload_text, upload_file
-from config import BASE_KEYBOARD, TELEBOT_TOKEN, db_worker, bot
+from config import BASE_KEYBOARD, BASE_AFTER_SIGN_UP_KEYBOARD, TELEBOT_TOKEN, db_worker, bot
+
+
+def base_keyboard_reply_markup(user_id):
+    if db_worker.check_sign_user(user_id):
+        return BASE_AFTER_SIGN_UP_KEYBOARD
+    return BASE_KEYBOARD
 
 
 def create_temp_directory():
@@ -33,16 +41,21 @@ def jail_check(chat_id):
     moniker_list = moniker_list if moniker_list != [''] else []
     if len(moniker_list) > 0:
         validators_dict, _ = validators_state()
-        bot.send_message(
-            chat_id,
-            dict_to_md_list({key: validators_dict[key] for key in moniker_list}),
-            parse_mode='HTML',
-            reply_markup=BASE_KEYBOARD)
+        try:
+            bot.send_message(
+                chat_id,
+                dict_to_md_list({moniker: validators_dict[moniker] for moniker in moniker_list}),
+                parse_mode='HTML',
+                reply_markup=base_keyboard_reply_markup(chat_id))
+        except ApiTelegramException as error_send_message:
+            logging.error(
+                f"The message was not sent. Chat id {chat_id} Error {error_send_message}")
+
     else:
         bot.send_message(
             chat_id,
-            'Please send a validator moniker so I can check it',
-            reply_markup=BASE_KEYBOARD)
+            'Please set a validator moniker in the `Jail check settings` so I can check it',
+            reply_markup=base_keyboard_reply_markup(chat_id))
 
 
 def download_file_from_telegram(message, file_id):
@@ -53,7 +66,7 @@ def download_file_from_telegram(message, file_id):
         bot.send_message(
             message.chat.id,
             'Please upload a file smaller than 20 MB',
-            reply_markup=BASE_KEYBOARD)
+            reply_markup=base_keyboard_reply_markup(message.from_user.id))
         return
     response = get('https://api.telegram.org/file/bot{0}/{1}'.format(TELEBOT_TOKEN, file_info.file_path))
     file_path = 'temp/' + file_id
@@ -98,14 +111,14 @@ def send_ipfs_notification(message, ipfs_hash, error, message_text='other conten
             f'IPFS Hash: <u>{ipfs_hash}</u>\n'
             f'IPFS Link: https://ipfs.io/ipfs/{ipfs_hash}\n',
             parse_mode='HTML',
-            reply_markup=BASE_KEYBOARD)
+            reply_markup=base_keyboard_reply_markup(message.from_user.id))
         if message_text:
             bot.send_message(
                 message.chat.id,
                 f'Please send {message_text}.\n'
                 f'You may send an text, cyberLink, {"" if add_ipfs else "IPFS hash, "}URL, file, photo, video, audio, '
                 f'contact, location, video or voice.',
-                reply_markup=BASE_KEYBOARD)
+                reply_markup=base_keyboard_reply_markup(message.from_user.id))
     elif error:
         bot.send_message(
             message.chat.id,
@@ -114,4 +127,4 @@ def send_ipfs_notification(message, ipfs_hash, error, message_text='other conten
             f'Please send other content.\n'
             f'You may send an text, cyberLink, {"" if add_ipfs else "IPFS hash, "}URL, file, photo, video, audio, '
             f'contact, location, video or voice.',
-            reply_markup=BASE_KEYBOARD)
+            reply_markup=base_keyboard_reply_markup(message.from_user.id))

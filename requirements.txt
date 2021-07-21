@@ -2,4 +2,4 @@ pytelegrambotapi
 pandas
 pysqlite3
 requests
-gql[all]
+gql[all]~=3.0.0a5

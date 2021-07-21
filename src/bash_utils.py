@@ -1,8 +1,8 @@
 from subprocess import Popen, PIPE
 import logging
 
-from config import VALIDATOR_QUERY, CYBERLINK_CREATION_QUERY, ACCOUNT_CREATION_QUERY, TRANSFER_EUL_QUERY, \
-                   UNJAIL_VALIDATOR_QUERY
+from config import VALIDATOR_QUERY, CYBERLINK_CREATION_QUERY, ACCOUNT_CREATION_QUERY, TRANSFER_QUERY, \
+                   UNJAIL_VALIDATOR_QUERY, TOKEN_NAME
 
 
 def execute_bash(bash_command):
@@ -105,21 +105,21 @@ def create_account(account_name, query=ACCOUNT_CREATION_QUERY):
         return None, error_account_creation
 
 
-def transfer_eul_tokens(account_address, value, query=TRANSFER_EUL_QUERY):
+def transfer_tokens(account_address, value, query=TRANSFER_QUERY):
     try:
         output, error_execute_bash = \
-            execute_bash(f'{query} {account_address} {str(value)+"eul"}')
+            execute_bash(f'{query} {account_address} {str(value)+TOKEN_NAME.lower()}')
         if len(extract_from_console(output, ['txhash'])) > 0:
             logging.info(
-                f"Tokens was transferred to {account_address} value {value}EUL "
+                f"Tokens was transferred to {account_address} value {value}{TOKEN_NAME} "
                 f"txhash {extract_from_console(output, ['txhash'])}")
             return True, None
         logging.error(
-            f"Tokens was not transferred to {account_address} value {value}EUL. Error {error_execute_bash}")
+            f"Tokens was not transferred to {account_address} value {value}{TOKEN_NAME}. Error {error_execute_bash}")
         return None, error_execute_bash
     except Exception as error_transfer_tokens:
         logging.error(
-            f"Tokens was not transferred to {account_address} value {value}EUL. Error {error_transfer_tokens}")
+            f"Tokens was not transferred to {account_address} value {value}{TOKEN_NAME}. Error {error_transfer_tokens}")
         return None, error_transfer_tokens
 
 

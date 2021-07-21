@@ -20,8 +20,8 @@ CYBERLINK_CREATION_QUERY = os.getenv('CYBERLINK_CREATION_QUERY', './src/create_c
 # Shell query for account creation
 ACCOUNT_CREATION_QUERY = os.getenv('ACCOUNT_CREATION_QUERY', './src/create_account.sh')
 
-# Shell query for transfer EUL tokens to new account
-TRANSFER_EUL_QUERY = os.getenv('TRANSFER_EUL_QUERY', './src/transfer_eul_tokens.sh')
+# Shell query for transfer main tokens to new account
+TRANSFER_QUERY = os.getenv('TRANSFER_QUERY', './src/transfer_tokens.sh')
 
 # Shell query for unjail validator
 UNJAIL_VALIDATOR_QUERY = os.getenv('UNJAIL_VALIDATOR_QUERY', './src/unjail_validator.sh')
@@ -35,12 +35,18 @@ DB_FILE = os.getenv('DB_FILE', 'db_sqlite.vdb')
 # IPFS HOST
 IPFS_HOST = os.getenv('IPFS_HOST', 'http://localhost:5001')
 
+CYBERPAGE_URL = 'https://rebyc.cyber.page/network/bostrom'
+
+GRAPHQL_HOST = 'https://index.bostromdev.cybernode.ai/v1/graphql'
+
 bot = TeleBot(TELEBOT_TOKEN)
 
 db_worker = SQLighter(DB_FILE)
 
 # Hourly notifications
 SCHEDULER_TIME = 60 * 60
+
+TOKEN_NAME = 'BOOT'
 
 # Base Menu
 BASE_MENU = ['Create cyberLink', 'Upload to IPFS', 'Sign up',

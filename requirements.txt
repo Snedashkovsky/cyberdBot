@@ -1,3 +1,5 @@
 pytelegrambotapi
 pandas
 pysqlite3
+requests
+gql

@@ -6,7 +6,7 @@ import logging
 from src.bot_utils import create_temp_directory, send_ipfs_notification, jail_check, dict_to_md_list, \
     message_upload_to_ipfs, base_keyboard_reply_markup
 from src.bash_utils import validators_state, create_cyberlink, create_account, transfer_tokens
-from config import CYBERD_KEY_NAME, BASE_MENU_LOWER, MONITORING_MENU_LOWER, TWEETER_MENU_LOWER, MONITORING_KEYBOARD, \
+from config import CYBER_KEY_NAME, BASE_MENU_LOWER, MONITORING_MENU_LOWER, TWEETER_MENU_LOWER, MONITORING_KEYBOARD, \
     TWEETER_KEYBOARD, TWEET_HASH, DEV_MODE, States, bot, db_worker, CYBERPAGE_URL, TOKEN_NAME
 
 # Create directory for temporary files
@@ -100,7 +100,7 @@ def endpoint_cyberlink(message):
         if cyberlink_error == 'not enough personal bandwidth':
             cyberlink_hash, cyberlink_error = \
                 create_cyberlink(
-                    account_name=CYBERD_KEY_NAME,
+                    account_name=CYBER_KEY_NAME,
                     from_hash=cyberlink_startpoint_ipfs_hash[message.chat.id],
                     to_hash=ipfs_hash)
         if cyberlink_hash:

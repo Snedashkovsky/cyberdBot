@@ -1,8 +1,10 @@
 #!/usr/bin/expect -f
 set timeout -1
-spawn cyberdcli tx slashing unjail --from=$env(CYBERD_KEY_NAME) --chain-id bostrom-testnet-3
-expect "* passphrase:"  {send -- "$env(CYBERD_PASS)\r"}
+spawn cd ..
+spawn export  $(head -2 .env | grep -v '^#' | xargs)
+spawn docker exec -ti bostrom-testnet-3 cyber tx slashing unjail --from=$env(CYBER_KEY_NAME) --chain-id bostrom-testnet-3
+expect "* passphrase:"  {send -- "$env(CYBER_PASS)\r"}
 expect "* broadcasting *" {send -- "y\r"}
-expect "* passphrase:"  {send -- "$env(CYBERD_PASS)\r"}
+expect "* passphrase:"  {send -- "$env(CYBER_PASS)\r"}
 
 expect eof

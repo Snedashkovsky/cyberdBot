@@ -5,12 +5,12 @@ from os import mkdir
 import logging
 from telebot.apihelper import ApiTelegramException
 
-from src.bash_utils import validators_state
+from src.lcd_utils import validators_state
 from src.ipfs_utils import upload_text, upload_file
 from config import BASE_KEYBOARD, BASE_AFTER_SIGN_UP_KEYBOARD, TELEBOT_TOKEN, db_worker, bot
 
 
-def base_keyboard_reply_markup(user_id):
+def base_keyboard_reply_markup(user_id: int):
     if db_worker.check_sign_user(user_id):
         return BASE_AFTER_SIGN_UP_KEYBOARD
     return BASE_KEYBOARD
@@ -25,7 +25,7 @@ def create_temp_directory():
         print('Successfully created the directory "temp".')
 
 
-def dict_to_md_list(input_dict):
+def dict_to_md_list(input_dict: dict):
     srt_from_dict = ''''''
     for key in sorted(list(input_dict.keys())):
         if input_dict[key] == 'jailed':
@@ -36,7 +36,7 @@ def dict_to_md_list(input_dict):
     return str(srt_from_dict)
 
 
-def jail_check(chat_id, pressed_button=True):
+def jail_check(chat_id: int, pressed_button=True):
     moniker_list = db_worker.get_moniker(chat_id)
     moniker_list = moniker_list if moniker_list != [''] else []
     if len(moniker_list) > 0:
@@ -78,7 +78,7 @@ def download_file_from_telegram(message, file_id):
     return
 
 
-def message_upload_to_ipfs(message, lower_transform=True):
+def message_upload_to_ipfs(message, lower_transform: bool = True):
     if message.content_type == 'text':
         # TODO add conditions for checking IPFS Hash
         if len(message.text) == 46:
@@ -103,7 +103,8 @@ def message_upload_to_ipfs(message, lower_transform=True):
     return None, None
 
 
-def send_ipfs_notification(message, ipfs_hash, error, message_text='other content', add_ipfs=False):
+def send_ipfs_notification(message, ipfs_hash: str, error: str, message_text: str = 'other content',
+                           add_ipfs: bool = False):
     if ipfs_hash:
         bot.send_message(
             message.chat.id,

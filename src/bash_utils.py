@@ -1,57 +1,21 @@
 from subprocess import Popen, PIPE
 import logging
 
-from config import VALIDATOR_QUERY, CYBERLINK_CREATION_QUERY, ACCOUNT_CREATION_QUERY, TRANSFER_QUERY, \
+from config import CYBERLINK_CREATION_QUERY, ACCOUNT_CREATION_QUERY, TRANSFER_QUERY, \
                    UNJAIL_VALIDATOR_QUERY, TOKEN_NAME
 
 
-def execute_bash(bash_command):
+def execute_bash(bash_command: str):
     process = Popen(bash_command.split(), stdout=PIPE)
     return process.communicate()
 
 
-def extract_from_console(console_output, keys):
+def extract_from_console(console_output, keys: list):
     console_output = [item.replace(' ', '').split(':') for item in str(console_output).split('\\n')]
     return [[item[0], item[1].split('\\')[0]] for item in console_output if item[0] in keys]
 
 
-def validators_state(shell_query=VALIDATOR_QUERY):
-    try:
-        output, error_execute_bash = execute_bash(shell_query)
-        if error_execute_bash:
-            logging.error(
-                f"Validator state was not got. Error {error_execute_bash}")
-            return None, error_execute_bash
-        validator_data_list = extract_from_console(output, ['jailed', 'moniker'])
-        keys = [item[1] for item in validator_data_list[1::2]]
-        values = [item[1] for item in validator_data_list[::2]]
-        values = list(map(lambda x: 'unjailed' if x == 'false' else 'jailed', values))
-        return dict(zip(keys, values)), None
-    except Exception as error_parsing:
-        logging.error(
-            f"Validator state was not got. Error {error_parsing}")
-        return None, error_parsing
-
-
-def test_validators_state():
-    validator_list, _ = validators_state(shell_query='cat ./tests/validators_query_test')
-    assert validator_list == \
-           {'blue_blue': 'unjailed',
-            'papsan': 'jailed',
-            'dobry': 'unjailed',
-            'litvintech': 'unjailed',
-            'redbull': 'jailed',
-            'Developer': 'unjailed',
-            'sta': 'jailed',
-            'stardust': 'unjailed',
-            'cyberG': 'unjailed',
-            'eto_piter_detka': 'unjailed',
-            'ParadigmCitadel': 'unjailed',
-            'groovybear': 'unjailed',
-            'space': 'unjailed'}
-
-
-def create_cyberlink(account_name, from_hash, to_hash, query=CYBERLINK_CREATION_QUERY):
+def create_cyberlink(account_name: str, from_hash: str, to_hash: str, query: str = CYBERLINK_CREATION_QUERY):
     try:
         output, error_execute_bash = execute_bash(f'{query} {account_name} {from_hash} {to_hash}')
         if error_execute_bash:
@@ -80,7 +44,7 @@ def test_create_cyberlink():
     assert tx_hash == 'C97489299E9FE23FDE5F85AF85C076D869648577A9EE914E5A0332A6C515DE46'
 
 
-def create_account(account_name, query=ACCOUNT_CREATION_QUERY):
+def create_account(account_name: str, query: str = ACCOUNT_CREATION_QUERY):
     try:
         output, error_execute_bash = \
             execute_bash(f'{query} {account_name}')
@@ -105,7 +69,7 @@ def create_account(account_name, query=ACCOUNT_CREATION_QUERY):
         return None, error_account_creation
 
 
-def transfer_tokens(account_address, value, query=TRANSFER_QUERY):
+def transfer_tokens(account_address: str, value: int, query: str = TRANSFER_QUERY):
     try:
         output, error_execute_bash = \
             execute_bash(f'{query} {account_address} {str(value)+TOKEN_NAME.lower()}')
@@ -123,7 +87,7 @@ def transfer_tokens(account_address, value, query=TRANSFER_QUERY):
         return None, error_transfer_tokens
 
 
-def unjail_validator(query=UNJAIL_VALIDATOR_QUERY):
+def unjail_validator(query: str = UNJAIL_VALIDATOR_QUERY):
     try:
         output, error_execute_bash = \
             execute_bash(f'{query}')

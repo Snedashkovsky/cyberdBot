@@ -44,6 +44,12 @@ CYBERPAGE_URL = 'https://rebyc.cyber.page/network/bostrom'
 # GraphQL host
 GRAPHQL_HOST = 'https://index.bostromdev.cybernode.ai/v1/graphql'
 
+# RPC host
+RPC_HOST = 'https://rpc.bostromdev.cybernode.ai'
+
+# LCD host
+LCD_HOST = 'https://lcd.bostromdev.cybernode.ai'
+
 # Hourly notifications
 SCHEDULER_TIME = 60 * 60
 

@@ -2,8 +2,10 @@ from requests import get
 import logging
 
 from config import LCD_HOST
+from cachetools.func import ttl_cache
 
 
+@ttl_cache(maxsize=128, ttl=10)
 def validators_state(
         validators_query: str = '/cosmos/staking/v1beta1/validators',
         lcd_host: str = LCD_HOST,

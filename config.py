@@ -7,29 +7,26 @@ from dotenv import dotenv_values
 from src.sql_utils import SQLighter
 
 # Telegram bot token from BotFather
-TELEBOT_TOKEN = dotenv_values(".env")['TELEBOT_TOKEN']
+TELEBOT_TOKEN = dotenv_values('.env')['TELEBOT_TOKEN']
 bot = TeleBot(TELEBOT_TOKEN)
 
-# cyberdBot key name in the cyberd
-CYBER_KEY_NAME = dotenv_values(".env")['CYBER_KEY_NAME']
-
-# Shell query for get validators state data
-VALIDATOR_QUERY = dotenv_values(".env")['VALIDATOR_QUERY']
+# cyberdBot key name in the cyber
+CYBER_KEY_NAME = dotenv_values('.env')['CYBER_KEY_NAME']
 
 # Shell query for cyberLink creation
-CYBERLINK_CREATION_QUERY = dotenv_values(".env")['CYBERLINK_CREATION_QUERY']
+CYBERLINK_CREATION_QUERY = dotenv_values('.env')['CYBERLINK_CREATION_QUERY']
 
 # Shell query for account creation
-ACCOUNT_CREATION_QUERY = dotenv_values(".env")['ACCOUNT_CREATION_QUERY']
+ACCOUNT_CREATION_QUERY = dotenv_values('.env')['ACCOUNT_CREATION_QUERY']
 
 # Shell query for transfer main tokens to new account
-TRANSFER_QUERY = dotenv_values(".env")['TRANSFER_QUERY']
+TRANSFER_QUERY = dotenv_values('.env')['TRANSFER_QUERY']
 
 # Shell query for unjail validator
-UNJAIL_VALIDATOR_QUERY = dotenv_values(".env")['UNJAIL_VALIDATOR_QUERY']
+UNJAIL_VALIDATOR_QUERY = dotenv_values('.env')['UNJAIL_VALIDATOR_QUERY']
 
 # IPFS HOST
-IPFS_HOST = dotenv_values(".env")['IPFS_HOST']
+IPFS_HOST = dotenv_values('.env')['IPFS_HOST']
 
 # Development mode for easy bot stop (set in start_bot.sh)
 DEV_MODE = int(os.getenv('DEV_MODE', 0))

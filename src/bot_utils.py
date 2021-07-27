@@ -1,9 +1,8 @@
 from requests import get
-from telebot import apihelper
 from json import dumps
 from os import mkdir
 import logging
-from telebot.apihelper import ApiTelegramException
+from telebot.apihelper import ApiTelegramException, ApiException
 
 from src.lcd_utils import validators_state
 from src.ipfs_utils import upload_text, upload_file
@@ -41,16 +40,30 @@ def jail_check(chat_id: int, pressed_button=True):
     moniker_list = moniker_list if moniker_list != [''] else []
     if len(moniker_list) > 0:
         validators_dict, _ = validators_state()
+        monikers_in_validator_list = [moniker for moniker in moniker_list if moniker in validators_dict.keys()]
+        monikers_not_in_validator_list = [moniker for moniker in moniker_list if moniker not in validators_dict.keys()]
         try:
-            bot.send_message(
-                chat_id,
-                dict_to_md_list({moniker: validators_dict[moniker] for moniker in moniker_list}),
-                parse_mode='HTML',
-                reply_markup=base_keyboard_reply_markup(chat_id))
-        except ApiTelegramException as error_send_message:
+            if len(monikers_in_validator_list) > 0:
+                bot.send_message(
+                    chat_id,
+                    dict_to_md_list({moniker: validators_dict[moniker] for moniker in monikers_in_validator_list}),
+                    parse_mode='HTML',
+                    reply_markup=base_keyboard_reply_markup(chat_id),
+                    timeout=5)
+            if len(monikers_not_in_validator_list) > 0:
+                bot.send_message(
+                    chat_id,
+                    dict_to_md_list({moniker: 'not in validator list' for moniker in monikers_not_in_validator_list}),
+                    parse_mode='HTML',
+                    reply_markup=base_keyboard_reply_markup(chat_id),
+                    timeout=5)
+                logging.warning(f"{monikers_not_in_validator_list} monikers not in validators list")
+        except (ApiException, ApiTelegramException) as error_send_message:
             logging.error(
                 f"The message was not sent. Chat id {chat_id} Error {error_send_message}")
-
+        except KeyError as error_moniker_key:
+            logging.error(
+                f"One Moniker in {moniker_list} not in validators list. Chat id {chat_id} Error {error_moniker_key}")
     elif pressed_button:
         bot.send_message(
             chat_id,
@@ -61,7 +74,7 @@ def jail_check(chat_id: int, pressed_button=True):
 def download_file_from_telegram(message, file_id):
     try:
         file_info = bot.get_file(file_id)
-    except apihelper.ApiException as file_info_exception:
+    except ApiException as file_info_exception:
         print(file_info_exception)
         bot.send_message(
             message.chat.id,

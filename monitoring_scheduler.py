@@ -1,4 +1,5 @@
 import time
+import logging
 
 from src.bot_utils import jail_check
 from config import SCHEDULER_TIME, DEV_MODE, db_worker
@@ -13,6 +14,7 @@ def check_send_messages():
         chat_id_list = db_worker.get_all_scheduler_states()
         for chat_id in chat_id_list:
             jail_check(chat_id,  pressed_button=False)
+        logging.info(f'Validator status sent')
         time.sleep(SCHEDULER_TIME)
 
 
@@ -27,6 +29,5 @@ if __name__ == '__main__':
             try:
                 check_send_messages()
             except Exception as e:
-                print(e)
-                # restart in 15 sec
+                logging.error(f'Error {e}. It will be restarting in 15 sec')
                 time.sleep(15)

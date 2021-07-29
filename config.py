@@ -22,6 +22,13 @@ ACCOUNT_CREATION_QUERY = dotenv_values('.env')['ACCOUNT_CREATION_QUERY']
 # Shell query for transfer main tokens to new account
 TRANSFER_QUERY = dotenv_values('.env')['TRANSFER_QUERY']
 
+# Shell query for delegate main tokens to validator
+DELEGATE_QUERY = dotenv_values('.env')['DELEGATE_QUERY']
+VALIDATOR_ADDRESS = dotenv_values('.env')['VALIDATOR_ADDRESS']
+
+# Shell query for investmint stake tokens for amper or volt
+INVESTMINT_QUERY = dotenv_values('.env')['INVESTMINT_QUERY']
+
 # Shell query for unjail validator
 UNJAIL_VALIDATOR_QUERY = dotenv_values('.env')['UNJAIL_VALIDATOR_QUERY']
 

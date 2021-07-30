@@ -59,15 +59,16 @@ def create_account(account_name: str, query: str = ACCOUNT_CREATION_QUERY):
     try:
         output, error_execute_bash = \
             execute_bash(f'{query} {account_name}')
-        # if 'override the existing name' in str(output):
-        #     return None, 'this account already exists'
+        if 'override the existing name' in str(output):
+            return None, 'This account already exists'
         if output:
             account_address = extract_from_console(output, ['address'])[0][1]
             if len(str(output).split('\\n')[-3]) > 40:
                 account_mnemonic_phrase = str(output).split('\\n')[-3].split('\\')[0]
-            else:
+            elif len(str(output).split('\\n')[-3]) > 40:
                 account_mnemonic_phrase = str(output).split('\\n')[-2].split('\\')[0]
-            print(str(output).split('\\n')[-3:])
+            else:
+                return None, 'Cannot get mnemonic phrase'
             if account_address:
                 account_data = {'name': account_name,
                                 'address': account_address,

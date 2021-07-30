@@ -1,5 +1,6 @@
 from subprocess import Popen, PIPE
 import logging
+import re
 
 from config import CYBERLINK_CREATION_QUERY, ACCOUNT_CREATION_QUERY, TRANSFER_QUERY, \
                    UNJAIL_VALIDATOR_QUERY, DELEGATE_QUERY, INVESTMINT_QUERY, VALIDATOR_ADDRESS, TOKEN_NAME
@@ -24,8 +25,10 @@ def execute_bash(bash_command: str):
 
 
 def extract_from_console(console_output, keys: list):
-    console_output = [item.replace(' ', '').split(':') for item in str(console_output).split('\\n')]
-    return [[item[0], item[1].split('\\')[0]] for item in console_output if item[0] in keys]
+    console_output_split = \
+        [item.replace(' ', '').replace('"', '').split(':')
+         for item in re.split('{|}|,|\*|\\\\n|\\\\r',str(console_output))]
+    return [[item[0], item[1].split('\\')[0]] for item in console_output_split if item[0] in keys]
 
 
 def create_cyberlink(account_name: str, from_hash: str, to_hash: str, query: str = CYBERLINK_CREATION_QUERY):
@@ -56,11 +59,15 @@ def create_account(account_name: str, query: str = ACCOUNT_CREATION_QUERY):
     try:
         output, error_execute_bash = \
             execute_bash(f'{query} {account_name}')
-        if 'override the existing name' in str(output):
-            return None, 'this account already exists'
+        # if 'override the existing name' in str(output):
+        #     return None, 'this account already exists'
         if output:
             account_address = extract_from_console(output, ['address'])[0][1]
-            account_mnemonic_phrase = str(output).split('\\n')[-2].split('\\')[0]
+            if len(str(output).split('\\n')[-3]) > 40:
+                account_mnemonic_phrase = str(output).split('\\n')[-3].split('\\')[0]
+            else:
+                account_mnemonic_phrase = str(output).split('\\n')[-2].split('\\')[0]
+            print(str(output).split('\\n')[-3:])
             if account_address:
                 account_data = {'name': account_name,
                                 'address': account_address,

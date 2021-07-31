@@ -1,4 +1,5 @@
 #!/usr/bin/expect -f
+
 set account_address [lindex $argv 0]
 set value [lindex $argv 1]
 set investmint_token [lindex $argv 2]

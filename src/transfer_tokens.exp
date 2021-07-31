@@ -1,4 +1,5 @@
 #!/usr/bin/expect -f
+
 set to_account_address [lindex $argv 0]
 set value [lindex $argv 1]
 set timeout -1

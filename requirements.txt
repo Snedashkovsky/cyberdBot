@@ -1,4 +1,5 @@
 pytelegrambotapi
+cyberpy
 pandas~=1.1.4
 pysqlite3
 requests~=2.25.1

@@ -6,25 +6,27 @@ from telebot.apihelper import ApiTelegramException
 from src.bash_utils import transfer_tokens, create_account
 from config import BASE_AFTER_SIGN_UP_KEYBOARD, db_worker, bot, TOKEN_NAME, CYBERPAGE_URL, CYBER_CHAIN_ID
 
+
 TRANSFER_VALUE_NEW_USERS = 10_000_000
 TRANSFER_VALUE_LEADERS = 100_000_000
 TOTAL_GOL_GIFT = 1_178_234_463
 LOAD_NEW_DATA = True
+CREATE_NEW_ADDRESS_COLUMN = False
 NEW_USER_MESSAGE = f'If you create <b>10 links</b> with the bot, another <b>90 M{TOKEN_NAME}</b> will be transferred.'
 
 
-def message_genesis(cyber_address, bostrom_address, genesis_balance):
+def message_genesis(cyber_address: str, bostrom_address: str, genesis_balance: str) -> str:
     return f'''
 Also your bostrom address <b>{bostrom_address}</b> was included in the {CYBER_CHAIN_ID} Genesis.
 Your genesis balance is <b>{genesis_balance}</b>.
 {CYBERPAGE_URL}/contract/{bostrom_address}/wallet
-@cyberdBot sent the mnemonic phrase for cyber address {cyber_address} during sign up.
-You can use this mnemonic phrase to access your bostrom address by any wallet (e.g. Keplr).'''
+@cyberdBot sent the mnemonic phrase for the cyber address <b>{cyber_address}</b> during sign up.
+You can use this mnemonic phrase to access the bostrom address by any wallet (e.g. Keplr).'''
 
 
-def message_transfer(token_amount):
+def message_transfer(transfer_value) -> str:
     return f'''
-@cyberdBot transferred <b>{token_amount} M{TOKEN_NAME}</b> to you.
+@cyberdBot transferred <b>{transfer_value} M{TOKEN_NAME}</b> to you.
 Remember, {TOKEN_NAME} tokens will not be migrated to the production network.
 Let's delegate, investmint to Volt and Amper by https://rebyc.cyber.page/mint
 Your bandwidth can be enough to generate at least <b>7 links per day</b> after investminting in Amper.
@@ -32,11 +34,10 @@ Your bandwidth can be enough to generate at least <b>7 links per day</b> after i
 Go for it!'''
 
 
-def message_transfer_with_links(token_amount, links_amount, token_for_links_amount, users_message):
+def message_transfer_with_links(transfer_value, links_amount, token_for_links_amount, users_message) -> str:
     return f'''
-@cyberdBot received 1,178 M{TOKEN_NAME} from Game of Link and distributes this prize between accounts in proportion to the number of created cyberLinks. 
-You created {int(links_amount):>,} cyberLinks.
-<b>{token_amount + token_for_links_amount} M{TOKEN_NAME}</b> has been transferred to you, including <b>{token_for_links_amount} M{TOKEN_NAME}</b> reward for cyberLink creation.
+@cyberdBot received 1,178 M{TOKEN_NAME} from Game of Link and distributes this prize between accounts in proportion to the number of created cyberLinks. You created {int(links_amount):>,} cyberLinks.
+<b>{transfer_value} M{TOKEN_NAME}</b> has been transferred to you, including <b>{token_for_links_amount} M{TOKEN_NAME}</b> reward for cyberLink creation.
 Remember, {TOKEN_NAME} tokens will not be migrated to the production network.
 Let's delegate, investmint to Volt and Amper by https://rebyc.cyber.page/mint and Keplr wallet.
 Your bandwidth can be enough to generate at least <b>7 links per day</b> after investminting in Amper.
@@ -45,35 +46,36 @@ Go for it!'''
 
 
 def sign_up_user(user_id, account_name):
-    _account_data, _create_account_error = create_account(account_name)
-    if _account_data:
-        print(f'Account created {account_name} {user_id} {_account_data["address"]}')
+    account_data, create_account_error = create_account(account_name)
+    if account_data:
+        print(f'Account created {account_name} {user_id} {account_data["address"]}')
         try:
             bot.send_message(
                 user_id,
                 f'@cyberdBot created new account for you:\n'
-                f'Account: <b>{_account_data["name"]}</b>\n'
-                f'Address: <b>{_account_data["address"]}</b>\n'
-                f'Link: {CYBERPAGE_URL}/contract/{_account_data["address"]}\n\n'
-                f'Mnemonic phrase: <u>{_account_data["mnemonic_phrase"]}</u>\n'
+                f'Account: <b>{account_data["name"]}</b>\n'
+                f'Address: <b>{account_data["address"]}</b>\n'
+                f'Link: {CYBERPAGE_URL}/contract/{account_data["address"]}\n\n'
+                f'Mnemonic phrase: <u>{account_data["mnemonic_phrase"]}</u>\n'
                 f'**Important**Please write down your mnemonic phrase and keep it safe. '
                 f'The mnemonic is the only way to recover your account. '
                 f'There is no way of recovering any funds if you lose it.\n'
                 f'Storing tokens on this account is not secure and is intended for experimentation.',
                 parse_mode="HTML",
                 reply_markup=BASE_AFTER_SIGN_UP_KEYBOARD)
-            return _account_data["address"]
+            return account_data["address"]
         except ApiTelegramException:
             print('Chat not found')
     else:
-        print(f'Account not created. User id: {user_id}. Error: {_create_account_error}')
+        print(
+            user_id,
+            f'Account not created. Error: {create_account_error}')
     return
 
 
 def send_message_genesis(row):
     if len(row.genesis) > 0:
-        print(f'\nSend genesis message to {row.user_id} with {row.genesis_str} '
-              f'genesis bostrom address {row.bostrom_address}')
+        print(f'\nSend genesis message to {row.user_id} with {row.genesis_str} genesis bostrom address {row.bostrom_address}')
         try:
             bot.send_message(
                 chat_id=row.user_id,
@@ -84,23 +86,23 @@ def send_message_genesis(row):
             print('Chat not found')
 
 
-def send_message_transfer(row, transfer_value, new_bostrom_address, new_user_message=NEW_USER_MESSAGE):
-    _user_message = '' if row.number_of_cyberlinks >= 10 else new_user_message
+def send_message_transfer(row, transfer_value, new_bostrom_address):
+    user_message = '' if row.number_of_cyberlinks >= 10 else NEW_USER_MESSAGE
     if row.number_of_cyberlinks > 0:
-        _message_text = \
+        message_text = \
             message_transfer_with_links(
-                token_amount//1e6,
+                round(transfer_value/ 1e6, 1),
                 row.number_of_cyberlinks,
                 round(row.number_of_cyberlinks * gift_per_link / 1e6, 1),
-                _user_message)
+                user_message)
     else:
-        _message_text = message_transfer(token_amount)
-    print(f'\nSend transfer message to {row.user_id} link number {row.number_of_cyberlinks} cyber address {row.address}'
-          f' transfer value {transfer_value} new bostrom address {new_bostrom_address}')
+        message_text = message_transfer(transfer_value // 1e6)
+    print(f'\nSend transfer message to {row.user_id} link number {row.number_of_cyberlinks} cyber address {row.address} '
+          f'transfer value {transfer_value} new bostrom address {new_bostrom_address}')
     try:
         bot.send_message(
             chat_id=row.user_id,
-            text=_message_text,
+            text=message_text,
             parse_mode='HTML',
             reply_markup=BASE_AFTER_SIGN_UP_KEYBOARD)
     except ApiTelegramException:
@@ -114,12 +116,12 @@ def get_users_and_links():
                 acc.user_id,
                 acc.account_name,
                 links.cyberlink_count,
-                acc.account_address
+                acc.account_address_euler
             FROM (
                 SELECT
                     user_id,
                     account_name,
-                    account_address
+                    account_address_euler
                 FROM accounts
                 ) as acc
             LEFT JOIN (
@@ -163,6 +165,10 @@ def compute_users_and_links(load_new_data: bool = LOAD_NEW_DATA):
 
 
 if __name__ == '__main__':
+
+    if CREATE_NEW_ADDRESS_COLUMN:
+        db_worker.rename_column(new_column_name='account_address_euler')
+        db_worker.add_column()
 
     users_and_links_df = compute_users_and_links()
     total_cyberlinks = int(sum(users_and_links_df.number_of_cyberlinks))

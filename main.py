@@ -389,9 +389,9 @@ def sign_up_user(message):
         if transfer_state:
             bot.send_message(
                 message.chat.id,
-                f'I have transferred 2,500,000 {TOKEN_NAME} to you account.\n'
+                f'I have transferred 10,000,000 {TOKEN_NAME} to you account.\n'
                 f'You can create cyberlinks now!\n'
-                f'If you create more than 10 cyberlinks, I will transfer an additional 7,500,000 {TOKEN_NAME} '
+                f'If you create more than 10 cyberlinks, I will transfer an additional 90,000,000 {TOKEN_NAME} '
                 f'to your account!',
                 reply_markup=base_keyboard_reply_markup(message.from_user.id))
         else:

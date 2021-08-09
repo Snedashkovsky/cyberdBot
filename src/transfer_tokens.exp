@@ -3,7 +3,7 @@
 set to_account_address [lindex $argv 0]
 set value [lindex $argv 1]
 set timeout -1
-spawn docker exec -ti $env(CYBER_DOCKER) cyber tx bank send $env(CYBER_KEY_NAME) $to_account_address $value --chain-id $env(CYBER_CHAIN_ID) --timeout-height 20 --yes
+spawn docker exec -ti $env(CYBER_DOCKER) cyber tx bank send $env(CYBER_KEY_NAME) $to_account_address $value --chain-id $env(CYBER_CHAIN_ID) --gas 200000 --gas-prices 0.01boot --yes
 expect "* passphrase:"  {send -- "$env(CYBER_PASS)\r"}
 
 expect eof

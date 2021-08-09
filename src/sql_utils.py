@@ -224,6 +224,16 @@ class SQLighter:
                     SET account_address = '{new_address}' 
                     WHERE user_id = {user_id}""").fetchall()
 
+    def rename_column(self, new_column_name, old_column_name='account_address', table='accounts'):
+        with self.connection:
+            self.cursor.execute(
+                f"""ALTER TABLE {table} RENAME COLUMN {old_column_name} TO {new_column_name}""").fetchall()
+
+    def add_column(self, new_column_name='account_address', table='accounts'):
+        with self.connection:
+            self.cursor.execute(
+                f"""ALTER TABLE {table} ADD COLUMN {new_column_name} STRING NOT NULL DEFAULT ''""").fetchall()
+
     def close(self):
         """ Close DB connection """
         self.connection.close()

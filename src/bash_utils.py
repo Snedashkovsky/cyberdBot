@@ -39,11 +39,13 @@ def create_cyberlink(account_name: str, from_hash: str, to_hash: str, query: str
                 f"cyberLink was not created. Account {account_name}, from {from_hash}, to {to_hash}. "
                 f"Error {error_execute_bash}")
             return None, error_execute_bash
-        raw_log = extract_from_console(output, ['rawlog'])[0][1]
-        if raw_log == 'not enough personal bandwidth'.replace(' ', ''):
+        raw_log = extract_from_console(output, ['rawlog'])
+        creation_error = extract_from_console(output, ['Error'])
+        if (len(raw_log) > 0 and raw_log[0][1] == 'not enough personal bandwidth'.replace(' ', '')) \
+                or (len(creation_error) > 0):
             logging.info(
                 f"cyberLink was not created. Account {account_name}, from {from_hash}, to {to_hash}. Not enough "
-                f"personal bandwidth")
+                f"personal bandwidth. Error {creation_error}")
             return None, 'not enough personal bandwidth'
         tx_hash = extract_from_console(output, ['txhash'])[0][1]
         logging.info(

@@ -159,10 +159,11 @@ class SQLighter:
 
     def signup_user(self, user_id: int, account_name: str, account_address: str):
         """ Insert new user in the accounts table """
+        # TODO Update `accounts` table and remove here `account_address_euler`
         with self.connection:
             return self.cursor.execute(
-                f"""INSERT INTO accounts (user_id, account_name, account_address) 
-                    VALUES({user_id}, '{account_name}', '{account_address}')""").fetchall()
+                f"""INSERT INTO accounts (user_id, account_name, account_address, account_address_euler) 
+                    VALUES({user_id}, '{account_name}', '{account_address}', '')""").fetchall()
 
     def check_sign_user(self, user_id: int):
         """ Check if the user is signed up or not """
@@ -216,7 +217,7 @@ class SQLighter:
                 self.cursor.execute(query).fetchall(),
                 columns=columns)
 
-    def update_account_address(self, user_id, new_address):
+    def update_account_address(self, user_id: int, new_address: str):
         """ Update account address after moving to a new network or adding new address"""
         with self.connection:
             self.cursor.execute(
@@ -224,12 +225,12 @@ class SQLighter:
                     SET account_address = '{new_address}' 
                     WHERE user_id = {user_id}""").fetchall()
 
-    def rename_column(self, new_column_name, old_column_name='account_address', table='accounts'):
+    def rename_column(self, new_column_name: str, old_column_name: str = 'account_address', table: str = 'accounts'):
         with self.connection:
             self.cursor.execute(
                 f"""ALTER TABLE {table} RENAME COLUMN {old_column_name} TO {new_column_name}""").fetchall()
 
-    def add_column(self, new_column_name='account_address', table='accounts'):
+    def add_column(self, new_column_name: str = 'account_address', table: str = 'accounts'):
         with self.connection:
             self.cursor.execute(
                 f"""ALTER TABLE {table} ADD COLUMN {new_column_name} STRING NOT NULL DEFAULT ''""").fetchall()

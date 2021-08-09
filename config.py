@@ -13,6 +13,10 @@ bot = TeleBot(TELEBOT_TOKEN)
 # cyberdBot key name in the cyber
 CYBER_KEY_NAME = dotenv_values('.env')['CYBER_KEY_NAME']
 
+# cyber docker name and chain id
+CYBER_DOCKER = dotenv_values('.env')['CYBER_DOCKER']
+CYBER_CHAIN_ID = dotenv_values('.env')['CYBER_CHAIN_ID']
+
 # Shell query for cyberLink creation
 CYBERLINK_CREATION_QUERY = dotenv_values('.env')['CYBERLINK_CREATION_QUERY']
 

@@ -4,7 +4,7 @@ from cyberpy import address_to_address
 from telebot.apihelper import ApiTelegramException
 
 from src.bash_utils import transfer_tokens, create_account
-from config import BASE_AFTER_SIGN_UP_KEYBOARD, db_worker, bot, TOKEN_NAME, CYBERPAGE_URL
+from config import BASE_AFTER_SIGN_UP_KEYBOARD, db_worker, bot, TOKEN_NAME, CYBERPAGE_URL, CYBER_CHAIN_ID
 
 TRANSFER_VALUE_NEW_USERS = 10_000_000
 TRANSFER_VALUE_LEADERS = 100_000_000
@@ -15,7 +15,7 @@ NEW_USER_MESSAGE = f'If you create <b>10 links</b> with the bot, another <b>90 M
 
 def message_genesis(cyber_address, bostrom_address, genesis_balance):
     return f'''
-Also your bostrom address <b>{bostrom_address}</b> was included in the bostrom-testnet-3 Genesis.
+Also your bostrom address <b>{bostrom_address}</b> was included in the {CYBER_CHAIN_ID} Genesis.
 Your genesis balance is <b>{genesis_balance}</b>.
 {CYBERPAGE_URL}/contract/{bostrom_address}/wallet
 @cyberdBot sent the mnemonic phrase for cyber address {cyber_address} during sign up.
@@ -145,7 +145,7 @@ def compute_users_and_links(load_new_data: bool = LOAD_NEW_DATA):
     if load_new_data:
         _users_and_links_df = get_users_and_links()
 
-        with open("genesis_bostrom_testnet_3.json") as _jsonFile:
+        with open("data/genesis_bostrom_testnet_4.json") as _jsonFile:
             _genesis_json = json.load(_jsonFile)
             _jsonFile.close()
 

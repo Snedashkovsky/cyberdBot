@@ -65,8 +65,10 @@ def create_account(account_name: str, query: str = ACCOUNT_CREATION_QUERY):
             account_address = extract_from_console(output, ['address'])[0][1]
             if len(str(output).split('\\n')[-3]) > 40:
                 account_mnemonic_phrase = str(output).split('\\n')[-3].split('\\')[0]
-            elif len(str(output).split('\\n')[-3]) > 40:
+            elif len(str(output).split('\\n')[-2]) > 40:
                 account_mnemonic_phrase = str(output).split('\\n')[-2].split('\\')[0]
+            elif len(str(output).split('\\n')[-1]) > 40:
+                account_mnemonic_phrase = str(output).split('\\n')[-1].split('\\')[0]
             else:
                 return None, 'Cannot get mnemonic phrase'
             if account_address:

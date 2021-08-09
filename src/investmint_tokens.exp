@@ -5,7 +5,7 @@ set value [lindex $argv 1]
 set investmint_token [lindex $argv 2]
 set timeout -1
 set investmint_period 604800
-spawn docker exec -ti $env(CYBER_DOCKER) cyber tx resources investmint $value investmint_token $investmint_period --from $account_address --chain-id $env(CYBER_CHAIN_ID) --gas 160000 --gas-prices 0.01boot --yes
+spawn docker exec -ti $env(CYBER_DOCKER) cyber tx resources investmint $value investmint_token $investmint_period --from $account_address --chain-id $env(CYBER_CHAIN_ID) --gas 160000 --gas-prices 0.01boot --timeout-height 20 --yes
 expect "* passphrase:"  {send -- "$env(CYBER_PASS)\r"}
 expect "* broadcasting *" {send -- "y\r"}
 

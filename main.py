@@ -5,9 +5,10 @@ import logging
 
 from src.bot_utils import create_temp_directory, send_ipfs_notification, jail_check, dict_to_md_list, \
     message_upload_to_ipfs, base_keyboard_reply_markup
-from src.bash_utils import validators_state, create_cyberlink, create_account, transfer_eul_tokens
-from config import CYBERD_KEY_NAME, BASE_MENU_LOWER, MONITORING_MENU_LOWER, TWEETER_MENU_LOWER, MONITORING_KEYBOARD, \
-    TWEETER_KEYBOARD, TWEET_HASH, DEV_MODE, States, bot, db_worker
+from src.lcd_utils import validators_state
+from src.bash_utils import create_cyberlink, create_account, transfer_tokens
+from config import CYBER_KEY_NAME, BASE_MENU_LOWER, MONITORING_MENU_LOWER, TWEETER_MENU_LOWER, MONITORING_KEYBOARD, \
+    TWEETER_KEYBOARD, TWEET_HASH, DEV_MODE, States, bot, db_worker, CYBERPAGE_URL, TOKEN_NAME
 
 # Create directory for temporary files
 create_temp_directory()
@@ -100,13 +101,13 @@ def endpoint_cyberlink(message):
         if cyberlink_error == 'not enough personal bandwidth':
             cyberlink_hash, cyberlink_error = \
                 create_cyberlink(
-                    account_name=CYBERD_KEY_NAME,
+                    account_name=CYBER_KEY_NAME,
                     from_hash=cyberlink_startpoint_ipfs_hash[message.chat.id],
                     to_hash=ipfs_hash)
         if cyberlink_hash:
             bot.send_message(
                 message.chat.id,
-                f'CyberLink created: https://cyber.page/network/euler/tx/{cyberlink_hash} \n'
+                f'CyberLink created: {CYBERPAGE_URL}/tx/{cyberlink_hash} \n'
                 f'Transaction hash: <u>{cyberlink_hash}</u> ',
                 parse_mode='HTML',
                 reply_markup=base_keyboard_reply_markup(message.from_user.id))
@@ -122,15 +123,15 @@ def endpoint_cyberlink(message):
                 from_ipfs_hash=cyberlink_startpoint_ipfs_hash[message.chat.id],
                 to_ipfs_hash=ipfs_hash)
             if db_worker.get_cyberlink_count(user_id=message.from_user.id) == 10:
-                transfer_state, transfer_error = transfer_eul_tokens(
+                transfer_state, transfer_error = transfer_tokens(
                     account_address=db_worker.get_account_address(user_id=message.from_user.id),
                     value=90_000_000)
                 if transfer_state:
                     bot.send_message(
                         message.chat.id,
-                        'Congratulations!\n'
-                        'You have created 10 links.\n'
-                        '7,500,000 EUL Tokens have been transferred to your account!',
+                        f'Congratulations!\n'
+                        f'You have created 10 links.\n'
+                        f'7,500,000 {TOKEN_NAME} Tokens have been transferred to your account!',
                         reply_markup=base_keyboard_reply_markup(message.from_user.id))
                 else:
                     bot.send_message(
@@ -236,11 +237,11 @@ def main_menu(message):
         state[message.chat.id] = States.S_SIGNUP
         bot.send_message(
             message.chat.id,
-            'To the maximum extent permitted by law, we make no guarantee, representation or warranty and expressly '
-            'disclaim liability (whether to you or any person).\n'
-            'Your use of this bot is voluntary and at your sole risk.\n'
-            'In the event of any loss, hack or theft of EUL tokens from your account, you acknowledge and confirm '
-            'that you shall have no right(s), claim(s) or causes of action in any way whatsoever against us.',
+            f'To the maximum extent permitted by law, we make no guarantee, representation or warranty and expressly '
+            f'disclaim liability (whether to you or any person).\n'
+            f'Your use of this bot is voluntary and at your sole risk.\n'
+            f'In the event of any loss, hack or theft of {TOKEN_NAME} tokens from your account, you acknowledge and '
+            f'confirm that you shall have no right(s), claim(s) or causes of action in any way whatsoever against us.',
             reply_markup=base_keyboard_reply_markup(message.from_user.id))
         bot.send_message(
             message.chat.id,
@@ -375,22 +376,23 @@ def sign_up_user(message):
             message.chat.id,
             f'Account: <b>{account_data["name"]}</b>\n'
             f'Address: <b>{account_data["address"]}</b>\n'
-            f'Link: https://cyber.page/network/euler/contract/{account_data["address"]}\n\n'
+            f'Link: {CYBERPAGE_URL}/contract/{account_data["address"]}\n\n'
             f'Mnemonic phrase: <u>{account_data["mnemonic_phrase"]}</u>\n'
             f'**Important**Please write down your mnemonic phrase and keep it safe. '
             f'The mnemonic is the only way to recover your account. '
             f'There is no way of recovering any funds if you lose it.',
             parse_mode="HTML",
             reply_markup=base_keyboard_reply_markup(message.from_user.id))
-        transfer_state, transfer_error = transfer_eul_tokens(
+        transfer_state, transfer_error = transfer_tokens(
             account_address=account_data["address"],
             value=10_000_000)
         if transfer_state:
             bot.send_message(
                 message.chat.id,
-                'I have transferred 2,500,000 EUL to you account.\n'
-                'You can create cyberlinks now!\n'
-                'If you create more than 10 cyberlinks, I will transfer an additional 7,500,000 EUL to your account!',
+                f'I have transferred 10,000,000 {TOKEN_NAME} to you account.\n'
+                f'You can create cyberlinks now!\n'
+                f'If you create more than 10 cyberlinks, I will transfer an additional 90,000,000 {TOKEN_NAME} '
+                f'to your account!',
                 reply_markup=base_keyboard_reply_markup(message.from_user.id))
         else:
             bot.send_message(
@@ -433,7 +435,7 @@ def add_tweet(message):
                 message.chat.id,
                 f'Tweet created:\n'
                 f'https://cyber.page/ipfs/{ipfs_hash}\n'
-                f'cyberLink: https://cyber.page/network/euler/tx/{cyberlink_hash}\n',
+                f'cyberLink: {CYBERPAGE_URL}/tx/{cyberlink_hash}\n',
                 parse_mode='HTML',
                 reply_markup=TWEETER_KEYBOARD)
             db_worker.write_cyberlink(
@@ -442,15 +444,15 @@ def add_tweet(message):
                 from_ipfs_hash=TWEET_HASH,
                 to_ipfs_hash=ipfs_hash)
             if db_worker.get_cyberlink_count(user_id=message.from_user.id) == 10:
-                transfer_state, transfer_error = transfer_eul_tokens(
+                transfer_state, transfer_error = transfer_tokens(
                     account_address=db_worker.get_account_address(user_id=message.from_user.id),
                     value=90_000_000)
                 if transfer_state:
                     bot.send_message(
                         message.chat.id,
-                        'Congratulations!\n'
-                        'You have created 10 links.\n'
-                        '7,500,000 EUL Tokens have been transferred to your account!',
+                        f'Congratulations!\n'
+                        f'You have created 10 links.\n'
+                        f'7,500,000 {TOKEN_NAME} Tokens have been transferred to your account!',
                         reply_markup=TWEETER_KEYBOARD)
                 else:
                     bot.send_message(

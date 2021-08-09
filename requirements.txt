@@ -1,3 +1,8 @@
 pytelegrambotapi
-pandas
+cyberpy
+pandas~=1.1.4
 pysqlite3
+requests~=2.25.1
+gql[all]~=3.0.0a5
+python-dotenv~=0.17.1
+cachetools~=4.2.1

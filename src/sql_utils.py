@@ -101,7 +101,7 @@ class SQLighter:
                    FROM  monikers 
                    GROUP BY chat_id''').fetchall()
 
-    def get_moniker(self, chat_id):
+    def get_moniker(self, chat_id: int):
         """ Get moniker list for chat_id """
         with self.connection:
             result = self.cursor.execute(
@@ -124,7 +124,7 @@ class SQLighter:
                 return [item[0] for item in result]
             return []
 
-    def get_scheduler_state(self, chat_id):
+    def get_scheduler_state(self, chat_id: int):
         """ Get scheduler state for chat_id """
         with self.connection:
             result = self.cursor.execute(
@@ -135,7 +135,7 @@ class SQLighter:
                 return result[0][0]
             return 0
 
-    def set_scheduler_state(self, chat_id, state):
+    def set_scheduler_state(self, chat_id: int, state: int):
         """ Set scheduler state for chat_id """
         with self.connection:
             if state == 1:
@@ -150,63 +150,90 @@ class SQLighter:
             return self.cursor.execute(
                 f"INSERT INTO monikers (chat_id, moniker)  VALUES({chat_id}, '{moniker}')").fetchall()
 
-    def reset_moniker(self, chat_id):
+    def reset_moniker(self, chat_id: int):
         """ Reset moniker list for chat_id """
         with self.connection:
             result = self.cursor.execute(
                 f'DELETE FROM monikers WHERE chat_id={chat_id}').fetchall()
             return len(result)
 
-    def signup_user(self, user_id, account_name, account_address):
+    def signup_user(self, user_id: int, account_name: str, account_address: str):
+        """ Insert new user in the accounts table """
+        # TODO Update `accounts` table and remove here `account_address_euler`
         with self.connection:
             return self.cursor.execute(
-                f"INSERT INTO accounts (user_id, account_name, account_address)  "
-                f"VALUES({user_id}, '{account_name}', '{account_address}')").fetchall()
+                f"""INSERT INTO accounts (user_id, account_name, account_address, account_address_euler) 
+                    VALUES({user_id}, '{account_name}', '{account_address}', '')""").fetchall()
 
-    def check_sign_user(self, user_id):
+    def check_sign_user(self, user_id: int):
+        """ Check if the user is signed up or not """
         with self.connection:
             if len(self.cursor.execute(f"SELECT * FROM accounts WHERE user_id={user_id}").fetchall()) > 0:
                 return True
             return False
 
-    def write_cyberlink(self, user_id, cyberlink_hash, from_ipfs_hash, to_ipfs_hash):
+    def write_cyberlink(self, user_id: int, cyberlink_hash: str, from_ipfs_hash: str, to_ipfs_hash: str):
+        """ Insert new cyberlink """
         with self.connection:
             self.cursor.execute(
-                f"INSERT INTO cyberlinks (user_id, cyberlink_hash, from_ipfs_hash, to_ipfs_hash)  "
-                f"VALUES({user_id}, '{cyberlink_hash}', '{from_ipfs_hash}', '{to_ipfs_hash}')").fetchall()
+                f"""INSERT INTO cyberlinks (user_id, cyberlink_hash, from_ipfs_hash, to_ipfs_hash) 
+                    VALUES({user_id}, '{cyberlink_hash}', '{from_ipfs_hash}', '{to_ipfs_hash}')""").fetchall()
 
-    def get_account_name(self, user_id):
+    def get_account_name(self, user_id: int):
+        """ Get account address for user id """
         with self.connection:
             return self.cursor.execute(
                 f"SELECT account_name FROM accounts WHERE user_id={user_id}").fetchall()[0][0]
 
-    def get_account_address(self, user_id):
+    def get_account_address(self, user_id: int):
+        """ Get account address for user id """
         with self.connection:
             return self.cursor.execute(
                 f"SELECT account_address FROM accounts WHERE user_id={user_id}").fetchall()[0][0]
 
-    def get_cyberlink_count(self, user_id):
+    def get_cyberlink_count(self, user_id: int):
+        """ Get number of created cyberLinks for user id """
         with self.connection:
             return self.cursor.execute(
                 f"SELECT count(*) FROM cyberlinks WHERE user_id={user_id}").fetchall()[0][0]
 
     def get_total_account_with_full_transfers(self):
+        """ Get number of account with number of created cyberLinks more than 10 """
         with self.connection:
             return self.cursor.execute(
-                "SELECT count(*) "
-                "FROM ("
-                "    SELECT "
-                "        user_id, "
-                "        count(*) as cyberlink_count "
-                "    FROM cyberlinks "
-                "    GROUP BY user_id "
-                "    HAVING cyberlink_count > 10)").fetchall()[0][0]
+                """SELECT count(*) 
+                   FROM (
+                       SELECT 
+                           user_id, 
+                           count(*) as cyberlink_count 
+                       FROM cyberlinks 
+                       GROUP BY user_id 
+                       HAVING cyberlink_count > 10)""").fetchall()[0][0]
 
-    def get_df(self, query, columns=None):
+    def get_df(self, query: str, columns=None):
+        """ Get pandas dataframe from query result """
         with self.connection:
             return DataFrame(
                 self.cursor.execute(query).fetchall(),
                 columns=columns)
+
+    def update_account_address(self, user_id: int, new_address: str):
+        """ Update account address after moving to a new network or adding new address"""
+        with self.connection:
+            self.cursor.execute(
+                f"""UPDATE accounts 
+                    SET account_address = '{new_address}' 
+                    WHERE user_id = {user_id}""").fetchall()
+
+    def rename_column(self, new_column_name: str, old_column_name: str = 'account_address', table: str = 'accounts'):
+        with self.connection:
+            self.cursor.execute(
+                f"""ALTER TABLE {table} RENAME COLUMN {old_column_name} TO {new_column_name}""").fetchall()
+
+    def add_column(self, new_column_name: str = 'account_address', table: str = 'accounts'):
+        with self.connection:
+            self.cursor.execute(
+                f"""ALTER TABLE {table} ADD COLUMN {new_column_name} STRING NOT NULL DEFAULT ''""").fetchall()
 
     def close(self):
         """ Close DB connection """

@@ -3,7 +3,7 @@ import requests
 from config import IPFS_HOST
 
 
-def upload_text(text):
+def upload_text(text: str):
     print(f'Uploading text: {text}')
     try:
         files = {
@@ -16,7 +16,7 @@ def upload_text(text):
         return None, upload_error
 
 
-def upload_file(file_name):
+def upload_file(file_name: str):
     print(f'Uploading file: {file_name}')
     try:
         files = {

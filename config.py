@@ -2,45 +2,66 @@ import os
 from enum import Enum
 from telebot.types import ReplyKeyboardMarkup
 from telebot import TeleBot
+from dotenv import dotenv_values
 
 from src.sql_utils import SQLighter
 
 # Telegram bot token from BotFather
-TELEBOT_TOKEN = os.getenv('TELEBOT_TOKEN')
-
-# cyberdBot key name in the cyberd
-CYBERD_KEY_NAME = os.getenv('CYBERD_KEY_NAME')
-
-# Shell query for get validators state data
-VALIDATOR_QUERY = os.getenv('VALIDATOR_QUERY', 'cyberdcli query staking validators --trust-node=true')
-
-# Shell query for cyberLink creation
-CYBERLINK_CREATION_QUERY = os.getenv('CYBERLINK_CREATION_QUERY', './src/create_cyberlink.sh')
-
-# Shell query for account creation
-ACCOUNT_CREATION_QUERY = os.getenv('ACCOUNT_CREATION_QUERY', './src/create_account.sh')
-
-# Shell query for transfer EUL tokens to new account
-TRANSFER_EUL_QUERY = os.getenv('TRANSFER_EUL_QUERY', './src/transfer_eul_tokens.sh')
-
-# Shell query for unjail validator
-UNJAIL_VALIDATOR_QUERY = os.getenv('UNJAIL_VALIDATOR_QUERY', './src/unjail_validator.sh')
-
-# Development mode for easy bot stop
-DEV_MODE = int(os.getenv('DEV_MODE', 0))
-
-# SQLLite file name
-DB_FILE = os.getenv('DB_FILE', 'db_sqlite.vdb')
-
-# IPFS HOST
-IPFS_HOST = os.getenv('IPFS_HOST', 'http://localhost:5001')
-
+TELEBOT_TOKEN = dotenv_values('.env')['TELEBOT_TOKEN']
 bot = TeleBot(TELEBOT_TOKEN)
 
+# cyberdBot key name in the cyber
+CYBER_KEY_NAME = dotenv_values('.env')['CYBER_KEY_NAME']
+
+# cyber docker name and chain id
+CYBER_DOCKER = dotenv_values('.env')['CYBER_DOCKER']
+CYBER_CHAIN_ID = dotenv_values('.env')['CYBER_CHAIN_ID']
+
+# Shell query for cyberLink creation
+CYBERLINK_CREATION_QUERY = dotenv_values('.env')['CYBERLINK_CREATION_QUERY']
+
+# Shell query for account creation
+ACCOUNT_CREATION_QUERY = dotenv_values('.env')['ACCOUNT_CREATION_QUERY']
+
+# Shell query for transfer main tokens to new account
+TRANSFER_QUERY = dotenv_values('.env')['TRANSFER_QUERY']
+
+# Shell query for delegate main tokens to validator
+DELEGATE_QUERY = dotenv_values('.env')['DELEGATE_QUERY']
+VALIDATOR_ADDRESS = dotenv_values('.env')['VALIDATOR_ADDRESS']
+
+# Shell query for investmint stake tokens for amper or volt
+INVESTMINT_QUERY = dotenv_values('.env')['INVESTMINT_QUERY']
+
+# Shell query for unjail validator
+UNJAIL_VALIDATOR_QUERY = dotenv_values('.env')['UNJAIL_VALIDATOR_QUERY']
+
+# IPFS HOST
+IPFS_HOST = dotenv_values('.env')['IPFS_HOST']
+
+# Development mode for easy bot stop (set in start_bot.sh)
+DEV_MODE = int(os.getenv('DEV_MODE', 0))
+
+# SQLite file name and DB worker
+DB_FILE = 'db_sqlite.vdb'
 db_worker = SQLighter(DB_FILE)
+
+# Cyber.page address for generate links to accounts and transactions
+CYBERPAGE_URL = 'https://rebyc.cyber.page/network/bostrom'
+
+# GraphQL host
+GRAPHQL_HOST = 'https://index.bostromdev.cybernode.ai/v1/graphql'
+
+# RPC host
+RPC_HOST = 'https://rpc.bostromdev.cybernode.ai'
+
+# LCD host
+LCD_HOST = 'https://lcd.bostromdev.cybernode.ai'
 
 # Hourly notifications
 SCHEDULER_TIME = 60 * 60
+
+TOKEN_NAME = 'BOOT'
 
 # Base Menu
 BASE_MENU = ['Create cyberLink', 'Upload to IPFS', 'Sign up',

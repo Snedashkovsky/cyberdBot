@@ -1,17 +1,19 @@
 from telebot.apihelper import ApiTelegramException
-from src.bash_utils import transfer_eul_tokens
-from config import BASE_AFTER_SIGN_UP_KEYBOARD, db_worker, bot
+from src.bash_utils import transfer_tokens
+from config import BASE_AFTER_SIGN_UP_KEYBOARD, db_worker, bot, TOKEN_NAME
 
-MESSAGE_TEXT_NEW_USER = '''
-@cyberdBot additionally transferred <b>7.5 MEUL</b> to you.
-If you create <b>10 links</b> with the bot, another <b>90 MEUL</b> will be transferred.
-Remember, EUL tokens will not be migrated to the production network.
-On the other hand, you can participate in the <b>Relevance</b> section of the <b>Game of Links</b> and get your share of the prize <b>500 GCYB ~ 230 ETH</b>.
+MESSAGE_TEXT_NEW_USER = f'''
+@cyberdBot additionally transferred <b>7.5 M{TOKEN_NAME}</b> to you.
+If you create <b>10 links</b> with the bot, another <b>90 M{TOKEN_NAME}</b> will be transferred.
+Remember, {TOKEN_NAME} tokens will not be migrated to the production network.
+On the other hand, you can participate in the <b>Relevance</b> section of the <b>Game of Links</b> 
+and get your share of the prize <b>500 GCYB ~ 230 ETH</b>.
 Go for it!'''
-MESSAGE_TEXT_LEADER = '''
-@cyberdBot additionally transferred <b>90 MEUL</b> to you.
-Remember, EUL tokens will not be migrated to the production network.
-On the other hand, you can participate in the <b>Relevance</b> section of the <b>Game of Links</b> and get your share of the prize <b>500 GCYB ~ 230 ETH</b>.
+MESSAGE_TEXT_LEADER = f'''
+@cyberdBot additionally transferred <b>90 M{TOKEN_NAME}</b> to you.
+Remember, {TOKEN_NAME} tokens will not be migrated to the production network.
+On the other hand, you can participate in the <b>Relevance</b> section of the <b>Game of Links</b> 
+and get your share of the prize <b>500 GCYB ~ 230 ETH</b>.
 Your bandwidth is enough to generate at least <b>100 links per day</b>.
 Go for it!'''
 
@@ -57,7 +59,7 @@ if __name__ == '__main__':
             transfer_value = TRANSFER_VALUE_NEW_USERS
         print(row.user_id, row.number_of_cyberlinks, row.address, transfer_value)
         transfer_success, transfer_error = \
-            transfer_eul_tokens(
+            transfer_tokens(
                 account_address=row.address,
                 value=transfer_value)
         if transfer_success:
@@ -70,4 +72,4 @@ if __name__ == '__main__':
             except ApiTelegramException:
                 print('Chat not found')
         else:
-            print(f'Unsuccessful transfer {transfer_value} EUL to {row.address}, user id {row.user_id}')
+            print(f'Unsuccessful transfer {transfer_value} {TOKEN_NAME} to {row.address}, user id {row.user_id}')

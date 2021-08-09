@@ -1,0 +1,10 @@
+#!/usr/bin/expect -f
+
+set account  [lindex $argv 0]
+set from [lindex $argv 1]
+set to [lindex $argv 2]
+set timeout -1
+spawn docker exec -ti $env(CYBER_DOCKER) cyber tx graph cyberlink $from $to --from=$account --chain-id=$env(CYBER_CHAIN_ID) --gas 200000 --gas-prices 0.01boot --yes
+expect "* passphrase:"  {send -- "$env(CYBER_PASS)\r"}
+
+expect eof

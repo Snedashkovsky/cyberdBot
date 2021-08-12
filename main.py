@@ -98,7 +98,7 @@ def endpoint_cyberlink(message):
                 account_name=db_worker.get_account_name(message.from_user.id),
                 from_hash=cyberlink_startpoint_ipfs_hash[message.chat.id],
                 to_hash=ipfs_hash)
-        if cyberlink_error == 'not enough personal bandwidth':
+        if cyberlink_error:
             cyberlink_hash, cyberlink_error = \
                 create_cyberlink(
                     account_name=CYBER_KEY_NAME,
@@ -411,8 +411,8 @@ def sign_up_user(message):
     func=lambda message: (((message.content_type == 'text')
                            & (message.text.lower() not in list(set().union(TWEETER_MENU_LOWER, BASE_MENU_LOWER))))
                           | (message.content_type in ('audio', 'contact', 'document', 'location',
-                                                       'photo', 'video', 'video_note', 'voice')))
-                          & (state[message.chat.id] == States.S_NEW_TWEET),
+                                                      'photo', 'video', 'video_note', 'voice')))
+                         & (state[message.chat.id] == States.S_NEW_TWEET),
     content_types=['audio', 'contact', 'document', 'location', 'photo', 'text', 'video', 'video_note', 'voice'])
 def add_tweet(message):
     ipfs_hash, ipfs_error = message_upload_to_ipfs(message, lower_transform=False)

@@ -8,7 +8,7 @@ from src.bot_utils import create_temp_directory, send_ipfs_notification, jail_ch
 from src.lcd_utils import validators_state
 from src.bash_utils import create_cyberlink, create_account, transfer_tokens
 from config import CYBER_KEY_NAME, BASE_MENU_LOWER, MONITORING_MENU_LOWER, TWEETER_MENU_LOWER, MONITORING_KEYBOARD, \
-    TWEETER_KEYBOARD, TWEET_HASH, DEV_MODE, States, bot, db_worker, CYBERPAGE_URL, TOKEN_NAME
+    TWEETER_KEYBOARD, TWEET_HASH, DEV_MODE, States, bot, db_worker, CYBERPAGE_URL, TOKEN_NAME, COMMAND_LIST
 
 # Create directory for temporary files
 create_temp_directory()
@@ -173,6 +173,7 @@ def text_upload_to_ipfs(message):
     send_ipfs_notification(message, ipfs_hash, error, add_ipfs=True)
 
 
+@bot.message_handler(commands=COMMAND_LIST)
 @bot.message_handler(
     func=lambda message: (message.text.lower() in BASE_MENU_LOWER) \
                          & (state[message.chat.id] in (States.S_START, States.S_STARTPOINT_CYBERLINK,
@@ -181,10 +182,11 @@ def text_upload_to_ipfs(message):
     content_types=['text']
 )
 def main_menu(message):
+    print(message.text)
     state[message.chat.id] = States.S_START
-    if message.text.lower() == 'jail check':
+    if message.text.lower() in ['jail check', '/check']:
         jail_check(message.chat.id)
-    elif message.text.lower() == 'validator list':
+    elif message.text.lower() in ['validator list', '/validators']:
         validators_dict, _ = validators_state()
         bot.send_message(
             message.chat.id,
@@ -197,13 +199,13 @@ def main_menu(message):
             message.chat.id,
             'Enter a validator moniker',
             reply_markup=MONITORING_KEYBOARD)
-    elif message.text.lower() == 'upload to ipfs':
+    elif message.text.lower() in ['upload to ipfs', '/ipfs']:
         state[message.chat.id] = States.S_UPLOAD_IPFS
         bot.send_message(
             message.chat.id,
             'Please send text, file, photo, video, audio, IPFS hash, URL, contact, location, video or voice',
             reply_markup=base_keyboard_reply_markup(message.from_user.id))
-    elif message.text.lower() == 'create cyberlink':
+    elif message.text.lower() in ['create cyberlink', '/cyberlink']:
         if db_worker.check_sign_user(message.from_user.id):
             state[message.chat.id] = States.S_STARTPOINT_CYBERLINK
             bot.send_message(
@@ -247,7 +249,7 @@ def main_menu(message):
             message.chat.id,
             'Choose a name for your cyber account. Remember that the name will be case sensitive',
             reply_markup=base_keyboard_reply_markup(message.from_user.id))
-    elif message.text.lower() == 'tweet':
+    elif message.text.lower() in ['tweet', '/tweet']:
         if not db_worker.check_sign_user(message.from_user.id):
             bot.send_message(
                 message.chat.id,

@@ -46,8 +46,8 @@ DEV_MODE = int(os.getenv('DEV_MODE', 0))
 DB_FILE = 'db_sqlite.vdb'
 db_worker = SQLighter(DB_FILE)
 
-# Cyber.page address for generate links to accounts and transactions
-CYBERPAGE_URL = 'https://rebyc.cyber.page/network/bostrom'
+# Cyber page address for generate links to accounts and transactions
+CYBERPAGE_URL = 'https://cyb.ai/network/bostrom'
 
 # GraphQL host
 GRAPHQL_HOST = 'https://index.bostromdev.cybernode.ai/v1/graphql'

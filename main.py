@@ -182,7 +182,6 @@ def text_upload_to_ipfs(message):
     content_types=['text']
 )
 def main_menu(message):
-    print(message.text)
     state[message.chat.id] = States.S_START
     if message.text.lower() in ['jail check', '/check']:
         jail_check(message.chat.id)

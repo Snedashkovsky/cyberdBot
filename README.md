@@ -27,5 +27,15 @@ Using:
 python3 -m pytest -s -v *.py src/*.py
 ```
 
+## Commands
+You can set commands in the [@BotFather](t.me/BotFather) by `/setcommands` command. The command list:
+```
+cyberlink - Create cyberLink  
+ipfs - Upload to IPFS  
+tweet - Tweet  
+check - Jail check  
+validators - Validator list  
+```
+
 ## Requirements
 Python 3.6 or higher

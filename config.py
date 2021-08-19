@@ -46,8 +46,8 @@ DEV_MODE = int(os.getenv('DEV_MODE', 0))
 DB_FILE = 'db_sqlite.vdb'
 db_worker = SQLighter(DB_FILE)
 
-# Cyber.page address for generate links to accounts and transactions
-CYBERPAGE_URL = 'https://rebyc.cyber.page/network/bostrom'
+# Cyber page address for generate links to accounts and transactions
+CYBERPAGE_URL = 'https://cyb.ai/network/bostrom'
 
 # GraphQL host
 GRAPHQL_HOST = 'https://index.bostromdev.cybernode.ai/v1/graphql'
@@ -63,6 +63,9 @@ SCHEDULER_TIME = 60 * 60
 
 TOKEN_NAME = 'BOOT'
 
+# List of commands
+COMMAND_LIST = ['cyberlink', 'ipfs', 'tweet', 'check', 'validators']
+
 # Base Menu
 BASE_MENU = ['Create cyberLink', 'Upload to IPFS', 'Sign up',
              'Jail check', 'Validator list', 'Jail check settings']
@@ -77,7 +80,7 @@ BASE_AFTER_SIGN_UP_KEYBOARD = ReplyKeyboardMarkup(True, True)
 BASE_AFTER_SIGN_UP_KEYBOARD.add(BASE_AFTER_SIGN_UP_MENU[0], BASE_AFTER_SIGN_UP_MENU[1], BASE_AFTER_SIGN_UP_MENU[2])
 BASE_AFTER_SIGN_UP_KEYBOARD.add(BASE_AFTER_SIGN_UP_MENU[3], BASE_AFTER_SIGN_UP_MENU[4], BASE_AFTER_SIGN_UP_MENU[5])
 
-BASE_MENU_LOWER = set(map(str.lower, BASE_MENU + BASE_AFTER_SIGN_UP_MENU))
+BASE_MENU_LOWER = set(map(str.lower, BASE_MENU + BASE_AFTER_SIGN_UP_MENU + ['/' + item for item in COMMAND_LIST]))
 
 # Jail Monitoring Menu
 MONITORING_MENU = ['Add validator moniker', 'Reset validator moniker',

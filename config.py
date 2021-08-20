@@ -64,7 +64,7 @@ SCHEDULER_TIME = 60 * 60
 TOKEN_NAME = 'BOOT'
 
 # List of commands
-COMMAND_LIST = ['cyberlink', 'ipfs', 'tweet', 'check', 'validators']
+COMMAND_LIST = ['search', 'cyberlink', 'ipfs', 'tweet', 'check', 'validators']
 
 # Base Menu
 BASE_MENU = ['Search', 'Create cyberLink', 'Upload to IPFS', 'Sign up',

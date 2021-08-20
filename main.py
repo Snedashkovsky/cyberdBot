@@ -5,7 +5,7 @@ import logging
 
 from src.bot_utils import create_temp_directory, send_ipfs_notification, jail_check, dict_to_md_list, \
     message_upload_to_ipfs, base_keyboard_reply_markup
-from src.lcd_utils import validators_state
+from src.lcd_utils import validators_state, search_cid
 from src.bash_utils import create_cyberlink, create_account, transfer_tokens
 from config import CYBER_KEY_NAME, BASE_MENU_LOWER, MONITORING_MENU_LOWER, TWEETER_MENU_LOWER, MONITORING_KEYBOARD, \
     TWEETER_KEYBOARD, TWEET_HASH, DEV_MODE, States, bot, db_worker, CYBERPAGE_URL, TOKEN_NAME, COMMAND_LIST
@@ -57,7 +57,11 @@ def start_message(message):
 @bot.message_handler(
     func=lambda message: state[message.chat.id] == States.S_UPLOAD_IPFS,
     content_types=['audio', 'contact', 'document', 'location', 'photo', 'video', 'video_note', 'voice'])
-def files_upload_to_ipfs(message):
+@bot.message_handler(
+    func=lambda message: (state[message.chat.id] == States.S_UPLOAD_IPFS) \
+                         & (message.text is None or message.text.lower() not in BASE_MENU_LOWER),
+    content_types=['text'])
+def upload_to_ipfs(message):
     ipfs_hash, error = message_upload_to_ipfs(message)
     send_ipfs_notification(message=message,
                            ipfs_hash=ipfs_hash,
@@ -66,10 +70,48 @@ def files_upload_to_ipfs(message):
 
 
 @bot.message_handler(
-    func=lambda message: (((message.content_type == 'text') & (message.text.lower() not in BASE_MENU_LOWER))
+    func=lambda message: state[message.chat.id] == States.S_SEARCH,
+    content_types=['audio', 'contact', 'document', 'location', 'photo', 'video', 'video_note', 'voice'])
+@bot.message_handler(
+    func=lambda message: (state[message.chat.id] == States.S_SEARCH)
+                         & (message.text is None or message.text.lower() not in BASE_MENU_LOWER),
+    content_types=['text'])
+def search(message):
+    ipfs_hash, error = message_upload_to_ipfs(message)
+    send_ipfs_notification(message=message,
+                           ipfs_hash=ipfs_hash,
+                           error=error,
+                           message_text='',
+                           add_ipfs=True)
+    if ipfs_hash:
+        search_list, search_error = search_cid(ipfs_hash)
+        if search_list:
+            search_list = search_list[:min(len(search_list), 5)]
+            message_text = 'Search result:\n' + ''.join(
+                f'<u><a href="https://ipfs.io/ipfs/{item["cid"]}">{item["cid"]}</a></u>\n' for item in search_list)
+        elif search_error == 'CID not found':
+            message_text = 'The content identifier not found in the cyber graph'
+        else:
+            message_text = search_error
+        bot.send_message(
+            message.chat.id,
+            message_text,
+            parse_mode='HTML',
+            reply_markup=base_keyboard_reply_markup(message.from_user.id))
+    bot.send_message(
+        message.chat.id,
+        'Please send other <u>search request</u> as text, file, photo, video, audio, '
+        'IPFS hash, URL, contact, location, video or voice',
+        parse_mode="HTML",
+        reply_markup=base_keyboard_reply_markup(message.from_user.id))
+
+
+@bot.message_handler(
+    func=lambda message: (state[message.chat.id] == States.S_STARTPOINT_CYBERLINK) &
+                         (((message.content_type == 'text') & (
+                                 message.text is None or message.text.lower() not in BASE_MENU_LOWER))
                           | (message.content_type in ('audio', 'contact', 'document', 'location',
-                                                      'photo', 'video', 'video_note', 'voice')))
-                         & (state[message.chat.id] == States.S_STARTPOINT_CYBERLINK),
+                                                      'photo', 'video', 'video_note', 'voice'))),
     content_types=['text', 'audio', 'contact', 'document', 'location', 'photo', 'video', 'video_note', 'voice'])
 def startpoint_cyberlink(message):
     ipfs_hash, error = message_upload_to_ipfs(message)
@@ -83,10 +125,11 @@ def startpoint_cyberlink(message):
 
 
 @bot.message_handler(
-    func=lambda message: (((message.content_type == 'text') & (message.text.lower() not in BASE_MENU_LOWER))
+    func=lambda message: (state[message.chat.id] == States.S_ENDPOINT_CYBERLINK) &
+                         (((message.content_type == 'text') & (
+                                 message.text is None or message.text.lower() not in BASE_MENU_LOWER))
                           | (message.content_type in ('audio', 'contact', 'document', 'location',
-                                                      'photo', 'video', 'video_note', 'voice')))
-                         & (state[message.chat.id] == States.S_ENDPOINT_CYBERLINK),
+                                                      'photo', 'video', 'video_note', 'voice'))),
     content_types=['audio', 'contact', 'document', 'location', 'photo', 'text', 'video', 'video_note', 'voice'])
 def endpoint_cyberlink(message):
     ipfs_hash, ipfs_error = message_upload_to_ipfs(message)
@@ -107,14 +150,15 @@ def endpoint_cyberlink(message):
         if cyberlink_hash:
             bot.send_message(
                 message.chat.id,
-                f'CyberLink created: {CYBERPAGE_URL}/tx/{cyberlink_hash} \n'
-                f'Transaction hash: <u>{cyberlink_hash}</u> ',
+                f'CyberLink created in the transaction: '
+                f'<u><a href="{CYBERPAGE_URL}/tx/{cyberlink_hash}">{cyberlink_hash}</a></u> \n',
                 parse_mode='HTML',
                 reply_markup=base_keyboard_reply_markup(message.from_user.id))
             bot.send_message(
                 message.chat.id,
-                f'from: https://ipfs.io/ipfs/{cyberlink_startpoint_ipfs_hash[message.chat.id]}\n'
-                f'to: https://ipfs.io/ipfs/{ipfs_hash}',
+                f'from: <u><a href="https://ipfs.io/ipfs/{cyberlink_startpoint_ipfs_hash[message.chat.id]}">'
+                f'{cyberlink_startpoint_ipfs_hash[message.chat.id]}</a></u>\n'
+                f'to: <u><a href="https://ipfs.io/ipfs/{ipfs_hash}">{ipfs_hash}</a></u>',
                 parse_mode='HTML',
                 reply_markup=base_keyboard_reply_markup(message.from_user.id))
             db_worker.write_cyberlink(
@@ -164,21 +208,9 @@ def send_message_when_start_state(message):
         reply_markup=base_keyboard_reply_markup(message.from_user.id))
 
 
-@bot.message_handler(
-    func=lambda message: (message.text.lower() not in BASE_MENU_LOWER) \
-                         & (state[message.chat.id] == States.S_UPLOAD_IPFS),
-    content_types=['text'])
-def text_upload_to_ipfs(message):
-    ipfs_hash, error = message_upload_to_ipfs(message)
-    send_ipfs_notification(message, ipfs_hash, error, add_ipfs=True)
-
-
 @bot.message_handler(commands=COMMAND_LIST)
 @bot.message_handler(
-    func=lambda message: (message.text.lower() in BASE_MENU_LOWER) \
-                         & (state[message.chat.id] in (States.S_START, States.S_STARTPOINT_CYBERLINK,
-                                                       States.S_ENDPOINT_CYBERLINK, States.S_UPLOAD_IPFS,
-                                                       States.S_SIGNUP)),
+    func=lambda message: (message.text.lower() in BASE_MENU_LOWER),
     content_types=['text']
 )
 def main_menu(message):
@@ -198,6 +230,14 @@ def main_menu(message):
             message.chat.id,
             'Enter a validator moniker',
             reply_markup=MONITORING_KEYBOARD)
+    elif message.text.lower() in ['search', '/search']:
+        state[message.chat.id] = States.S_SEARCH
+        bot.send_message(
+            message.chat.id,
+            'Please send <u>search request</u> as text, file, photo, video, audio, '
+            'IPFS hash, URL, contact, location, video or voice',
+            parse_mode="HTML",
+            reply_markup=base_keyboard_reply_markup(message.from_user.id))
     elif message.text.lower() in ['upload to ipfs', '/ipfs']:
         state[message.chat.id] = States.S_UPLOAD_IPFS
         bot.send_message(

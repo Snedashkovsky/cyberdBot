@@ -26,7 +26,7 @@ def validators_state(
 
 
 @ttl_cache(maxsize=128, ttl=10)
-def search(
+def search_cid(
         cid: str,
         search_query: str = '/rank/search?cid=',
         lcd_host: str = LCD_HOST):

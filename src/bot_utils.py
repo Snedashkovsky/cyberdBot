@@ -122,8 +122,7 @@ def send_ipfs_notification(message, ipfs_hash: str, error: str, message_text: st
         bot.send_message(
             message.chat.id,
             f'{str(message.content_type).capitalize()} successfully uploaded\n'
-            f'IPFS Hash: <u>{ipfs_hash}</u>\n'
-            f'IPFS Link: https://ipfs.io/ipfs/{ipfs_hash}\n',
+            f'IPFS Hash: <u><a href="https://ipfs.io/ipfs/{ipfs_hash}">{ipfs_hash}</a></u>',
             parse_mode='HTML',
             reply_markup=base_keyboard_reply_markup(message.from_user.id))
         if message_text:
@@ -138,7 +137,7 @@ def send_ipfs_notification(message, ipfs_hash: str, error: str, message_text: st
             message.chat.id,
             f'{str(message.content_type).capitalize()} not uploaded.\n'
             f'Error: {error}\n'
-            f'Please send other content.\n'
+            f'Please send {message_text}.\n'
             f'You may send an text, cyberLink, {"" if add_ipfs else "IPFS hash, "}URL, file, photo, video, audio, '
             f'contact, location, video or voice.',
             reply_markup=base_keyboard_reply_markup(message.from_user.id))

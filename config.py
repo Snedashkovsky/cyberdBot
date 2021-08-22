@@ -64,21 +64,23 @@ SCHEDULER_TIME = 60 * 60
 TOKEN_NAME = 'BOOT'
 
 # List of commands
-COMMAND_LIST = ['cyberlink', 'ipfs', 'tweet', 'check', 'validators']
+COMMAND_LIST = ['search', 'cyberlink', 'ipfs', 'tweet', 'check', 'validators']
 
 # Base Menu
-BASE_MENU = ['Create cyberLink', 'Upload to IPFS', 'Sign up',
+BASE_MENU = ['Search', 'Create cyberLink', 'Upload to IPFS', 'Sign up',
              'Jail check', 'Validator list', 'Jail check settings']
 BASE_KEYBOARD = ReplyKeyboardMarkup(True, True)
-BASE_KEYBOARD.add(BASE_MENU[0], BASE_MENU[1], BASE_MENU[2])
-BASE_KEYBOARD.add(BASE_MENU[3], BASE_MENU[4], BASE_MENU[5])
+BASE_KEYBOARD.add(BASE_MENU[0])
+BASE_KEYBOARD.add(BASE_MENU[1], BASE_MENU[2], BASE_MENU[3])
+BASE_KEYBOARD.add(BASE_MENU[4], BASE_MENU[5], BASE_MENU[6])
 
 # BASE Menu after Sign up
-BASE_AFTER_SIGN_UP_MENU = ['Create cyberLink', 'Upload to IPFS', 'Tweet',
+BASE_AFTER_SIGN_UP_MENU = ['Search', 'Create cyberLink', 'Upload to IPFS', 'Tweet',
                            'Jail check', 'Validator list', 'Jail check settings']
 BASE_AFTER_SIGN_UP_KEYBOARD = ReplyKeyboardMarkup(True, True)
-BASE_AFTER_SIGN_UP_KEYBOARD.add(BASE_AFTER_SIGN_UP_MENU[0], BASE_AFTER_SIGN_UP_MENU[1], BASE_AFTER_SIGN_UP_MENU[2])
-BASE_AFTER_SIGN_UP_KEYBOARD.add(BASE_AFTER_SIGN_UP_MENU[3], BASE_AFTER_SIGN_UP_MENU[4], BASE_AFTER_SIGN_UP_MENU[5])
+BASE_AFTER_SIGN_UP_KEYBOARD.add(BASE_AFTER_SIGN_UP_MENU[0])
+BASE_AFTER_SIGN_UP_KEYBOARD.add(BASE_AFTER_SIGN_UP_MENU[1], BASE_AFTER_SIGN_UP_MENU[2], BASE_AFTER_SIGN_UP_MENU[3])
+BASE_AFTER_SIGN_UP_KEYBOARD.add(BASE_AFTER_SIGN_UP_MENU[4], BASE_AFTER_SIGN_UP_MENU[5], BASE_AFTER_SIGN_UP_MENU[6])
 
 BASE_MENU_LOWER = set(map(str.lower, BASE_MENU + BASE_AFTER_SIGN_UP_MENU + ['/' + item for item in COMMAND_LIST]))
 
@@ -104,9 +106,10 @@ TWEET_HASH = 'QmbdH2WBamyKLPE5zu4mJ9v49qvY8BFfoumoVPMR5V4Rvx'
 # default status class
 class States(Enum):
     S_START = 0  # Start a position
-    S_UPLOAD_IPFS = 1  # Upload a content to IPFS
-    S_STARTPOINT_CYBERLINK = 2  # Set a starting point of cyberlink
-    S_ENDPOINT_CYBERLINK = 3  # Set a endpoint of cyberlink
-    S_MONITORING = 4  # Jail checker
-    S_SIGNUP = 5  # Sign up a new cyberd account
-    S_NEW_TWEET = 6  # Upload a New Tweet
+    S_SEARCH = 1  # Search a content
+    S_UPLOAD_IPFS = 2  # Upload a content to IPFS
+    S_STARTPOINT_CYBERLINK = 3  # Set a starting point of cyberlink
+    S_ENDPOINT_CYBERLINK = 4  # Set a endpoint of cyberlink
+    S_MONITORING = 5  # Jail checker
+    S_SIGNUP = 6  # Sign up a new cyberd account
+    S_NEW_TWEET = 7  # Upload a New Tweet

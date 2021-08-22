@@ -31,12 +31,12 @@ python3 -m pytest -s -v *.py src/*.py
 You can set commands in the [@BotFather](t.me/BotFather) by `/setcommands` command. The command list:
 ```
 search - Search
-cyberlink - Create a cyberLink  
+cyberlink - Create cyberLink  
 ipfs - Upload to IPFS  
 tweet - Tweet  
 check - Jail check  
 validators - Validator list  
-issue - Create an issue
+issue - Create issue or send feedback
 ```
 
 ## Requirements

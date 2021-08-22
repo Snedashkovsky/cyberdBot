@@ -42,11 +42,17 @@ def jail_check(chat_id: int, pressed_button=True):
         validators_dict, _ = validators_state()
         monikers_in_validator_list = [moniker for moniker in moniker_list if moniker in validators_dict.keys()]
         monikers_not_in_validator_list = [moniker for moniker in moniker_list if moniker not in validators_dict.keys()]
+        # Send message only about inactive state during automatic jail check and all states in other cases
+        if not pressed_button:
+            moniker_dict = {moniker: validators_dict[moniker] for moniker in monikers_in_validator_list
+                            if validators_dict[moniker] != 'Active'}
+        else:
+            moniker_dict = {moniker: validators_dict[moniker] for moniker in monikers_in_validator_list}
         try:
-            if len(monikers_in_validator_list) > 0:
+            if len(moniker_dict.keys()) > 0:
                 bot.send_message(
                     chat_id,
-                    dict_to_md_list({moniker: validators_dict[moniker] for moniker in monikers_in_validator_list}),
+                    dict_to_md_list(moniker_dict),
                     parse_mode='HTML',
                     reply_markup=base_keyboard_reply_markup(chat_id),
                     timeout=5)

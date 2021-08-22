@@ -8,8 +8,8 @@ from src.bot_utils import create_temp_directory, send_ipfs_notification, jail_ch
 from src.lcd_utils import validators_state, search_cid
 from src.bash_utils import create_cyberlink, create_account, transfer_tokens
 from config import CYBER_KEY_NAME, BASE_MENU_LOWER, MONITORING_MENU_LOWER, TWEETER_MENU_LOWER, MONITORING_KEYBOARD, \
-    TWEETER_KEYBOARD, TWEET_HASH, DEV_MODE, States, bot, db_worker, CYBERPAGE_URL, TOKEN_NAME, COMMAND_LIST, \
-    SUPPORT_ACCOUNT
+    TWEETER_KEYBOARD, TWEET_HASH, DEV_MODE, States, bot, db_worker, CYBERPAGE_URL, CYBERPAGE_BASE_URL, TOKEN_NAME, \
+    COMMAND_LIST, SUPPORT_ACCOUNT
 
 # Create directory for temporary files
 create_temp_directory()
@@ -134,7 +134,7 @@ def startpoint_cyberlink(message):
     content_types=['audio', 'contact', 'document', 'location', 'photo', 'text', 'video', 'video_note', 'voice'])
 def endpoint_cyberlink(message):
     ipfs_hash, ipfs_error = message_upload_to_ipfs(message)
-    send_ipfs_notification(message, ipfs_hash, ipfs_error, message_text=None)
+    send_ipfs_notification(message, ipfs_hash, ipfs_error, message_text='')
     if ipfs_hash:
         state[message.chat.id] = States.S_STARTPOINT_CYBERLINK
         cyberlink_hash, cyberlink_error = \
@@ -425,8 +425,8 @@ def sign_up_user(message):
         bot.send_message(
             message.chat.id,
             f'Account: <b>{account_data["name"]}</b>\n'
-            f'Address: <b>{account_data["address"]}</b>\n'
-            f'Link: {CYBERPAGE_URL}/contract/{account_data["address"]}\n\n'
+            f'Address: <u><a href="{CYBERPAGE_URL}/contract/{account_data["address"]}">{account_data["address"]}</a>'
+            f'</u>\n'
             f'Mnemonic phrase: <u>{account_data["mnemonic_phrase"]}</u>\n'
             f'**Important**Please write down your mnemonic phrase and keep it safe. '
             f'The mnemonic is the only way to recover your account. '
@@ -466,7 +466,7 @@ def sign_up_user(message):
     content_types=['audio', 'contact', 'document', 'location', 'photo', 'text', 'video', 'video_note', 'voice'])
 def add_tweet(message):
     ipfs_hash, ipfs_error = message_upload_to_ipfs(message, lower_transform=False)
-    send_ipfs_notification(message, ipfs_hash, ipfs_error, message_text=None)
+    send_ipfs_notification(message, ipfs_hash, ipfs_error, message_text='')
     if ipfs_hash:
         cyberlink_hash, cyberlink_error = \
             create_cyberlink(
@@ -483,9 +483,9 @@ def add_tweet(message):
         elif cyberlink_hash:
             bot.send_message(
                 message.chat.id,
-                f'Tweet created:\n'
-                f'https://cyber.page/ipfs/{ipfs_hash}\n'
-                f'cyberLink: {CYBERPAGE_URL}/tx/{cyberlink_hash}\n',
+                f'Tweet created: <u><a href="{CYBERPAGE_BASE_URL}/ipfs/{ipfs_hash}/meta">{ipfs_hash}</a></u>\n'
+                f'cyberLink in the transaction: <u><a href="{CYBERPAGE_URL}/tx/{cyberlink_hash}">{cyberlink_hash}</a>'
+                f'</u>\n',
                 parse_mode='HTML',
                 reply_markup=TWEETER_KEYBOARD)
             db_worker.write_cyberlink(

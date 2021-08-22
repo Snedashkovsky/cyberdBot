@@ -50,6 +50,7 @@ db_worker = SQLighter(DB_FILE)
 
 # Cyber page address for generate links to accounts and transactions
 CYBERPAGE_URL = 'https://cyb.ai/network/bostrom'
+CYBERPAGE_BASE_URL = 'https://cyb.ai'
 
 # GraphQL host
 GRAPHQL_HOST = 'https://index.bostromdev.cybernode.ai/v1/graphql'

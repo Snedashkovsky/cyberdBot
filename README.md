@@ -36,6 +36,7 @@ ipfs - Upload to IPFS
 tweet - Tweet  
 check - Jail check  
 validators - Validator list  
+issue - Create issue or send feedback
 ```
 
 ## Requirements

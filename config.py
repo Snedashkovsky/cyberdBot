@@ -10,6 +10,8 @@ from src.sql_utils import SQLighter
 TELEBOT_TOKEN = dotenv_values('.env')['TELEBOT_TOKEN']
 bot = TeleBot(TELEBOT_TOKEN)
 
+SUPPORT_ACCOUNT = dotenv_values('.env')['SUPPORT_ACCOUNT']
+
 # cyberdBot key name in the cyber
 CYBER_KEY_NAME = dotenv_values('.env')['CYBER_KEY_NAME']
 
@@ -64,7 +66,7 @@ SCHEDULER_TIME = 60 * 60
 TOKEN_NAME = 'BOOT'
 
 # List of commands
-COMMAND_LIST = ['search', 'cyberlink', 'ipfs', 'tweet', 'check', 'validators']
+COMMAND_LIST = ['search', 'cyberlink', 'ipfs', 'tweet', 'check', 'validators', 'issue']
 
 # Base Menu
 BASE_MENU = ['Search', 'Create cyberLink', 'Upload to IPFS', 'Sign up',

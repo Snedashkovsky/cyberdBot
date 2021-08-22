@@ -8,7 +8,8 @@ from src.bot_utils import create_temp_directory, send_ipfs_notification, jail_ch
 from src.lcd_utils import validators_state, search_cid
 from src.bash_utils import create_cyberlink, create_account, transfer_tokens
 from config import CYBER_KEY_NAME, BASE_MENU_LOWER, MONITORING_MENU_LOWER, TWEETER_MENU_LOWER, MONITORING_KEYBOARD, \
-    TWEETER_KEYBOARD, TWEET_HASH, DEV_MODE, States, bot, db_worker, CYBERPAGE_URL, TOKEN_NAME, COMMAND_LIST
+    TWEETER_KEYBOARD, TWEET_HASH, DEV_MODE, States, bot, db_worker, CYBERPAGE_URL, TOKEN_NAME, COMMAND_LIST, \
+    SUPPORT_ACCOUNT
 
 # Create directory for temporary files
 create_temp_directory()
@@ -301,6 +302,14 @@ def main_menu(message):
             'Please send new tweet as text, file, photo, video, audio, IPFS hash, URL, contact, location, '
             'video or voice',
             reply_markup=TWEETER_KEYBOARD)
+    elif message.text.lower() in ['/issue']:
+        bot.send_message(
+            message.chat.id,
+            f'You can report an issue or suggest improvements in '
+            f'<u><a href="https://github.com/Snedashkovsky/cyberdBot/issues">the cyberdBot repository</a></u>.\n'
+            f'Also you can text to @{SUPPORT_ACCOUNT} directly.',
+            parse_mode="HTML",
+            reply_markup=base_keyboard_reply_markup(message.from_user.id))
 
 
 @bot.message_handler(

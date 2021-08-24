@@ -33,6 +33,9 @@ def extract_from_console(console_output: bytes, keys: list) -> list:
 
 def create_cyberlink(account_name: str, from_hash: str, to_hash: str, query: str = CYBERLINK_CREATION_QUERY):
     if from_hash == to_hash:
+        logging.error(
+            f"cyberLink was not created. Account {account_name}, from {from_hash}, to {to_hash}. "
+            f"Error self cyberlink")
         return None, 'From and To CID is equal. Cannot create cyberLink to self beginning'
     try:
         _output, error_execute_bash = execute_bash(f'{query} {account_name} {from_hash} {to_hash}')

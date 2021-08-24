@@ -136,6 +136,13 @@ def endpoint_cyberlink(message):
     ipfs_hash, ipfs_error = message_upload_to_ipfs(message)
     send_ipfs_notification(message, ipfs_hash, ipfs_error, message_text='')
     if ipfs_hash:
+        if ipfs_hash == cyberlink_startpoint_ipfs_hash[message.chat.id]:
+            bot.send_message(
+                message.chat.id,
+                'From and To CID is equal. Cannot create cyberLink to self beginning.',
+                parse_mode='HTML',
+                reply_markup=base_keyboard_reply_markup(message.from_user.id))
+            return
         state[message.chat.id] = States.S_STARTPOINT_CYBERLINK
         cyberlink_hash, cyberlink_error = \
             create_cyberlink(
@@ -468,6 +475,12 @@ def add_tweet(message):
     ipfs_hash, ipfs_error = message_upload_to_ipfs(message, lower_transform=False)
     send_ipfs_notification(message, ipfs_hash, ipfs_error, message_text='')
     if ipfs_hash:
+        if ipfs_hash == TWEET_HASH:
+            bot.send_message(
+                message.chat.id,
+                f'It is not possible to post the word **tweet**',
+                reply_markup=TWEETER_KEYBOARD)
+            return
         cyberlink_hash, cyberlink_error = \
             create_cyberlink(
                 account_name=db_worker.get_account_name(message.from_user.id),

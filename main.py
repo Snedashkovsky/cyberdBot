@@ -139,7 +139,7 @@ def endpoint_cyberlink(message):
         if ipfs_hash == cyberlink_startpoint_ipfs_hash[message.chat.id]:
             bot.send_message(
                 message.chat.id,
-                'From and To CID is equal. Cannot create cyberLink to self beginning.',
+                'From and To CID is equal.\n<u>Cannot create cyberLink to self beginning</u>.',
                 parse_mode='HTML',
                 reply_markup=base_keyboard_reply_markup(message.from_user.id))
             return
@@ -204,6 +204,80 @@ def endpoint_cyberlink(message):
             'of the cyberlink.\n'
             'Please remember to be gentle, the search is case-senstive.',
             reply_markup=base_keyboard_reply_markup(message.from_user.id))
+
+
+@bot.message_handler(
+    func=lambda message: (((message.content_type == 'text')
+                           & (message.text.lower() not in list(
+                                set().union(TWEETER_MENU_LOWER, BASE_MENU_LOWER).difference(['tweet']))))
+                          | (message.content_type in ('audio', 'contact', 'document', 'location',
+                                                      'photo', 'video', 'video_note', 'voice')))
+                         & (state[message.chat.id] == States.S_NEW_TWEET),
+    content_types=['audio', 'contact', 'document', 'location', 'photo', 'text', 'video', 'video_note', 'voice'])
+def add_tweet(message):
+    ipfs_hash, ipfs_error = message_upload_to_ipfs(message, lower_transform=False)
+    send_ipfs_notification(message, ipfs_hash, ipfs_error, message_text='')
+    if ipfs_hash:
+        if ipfs_hash == TWEET_HASH:
+            bot.send_message(
+                message.chat.id,
+                f'It is not possible to post the word <u>tweet</u>',
+                parse_mode="HTML",
+                reply_markup=TWEETER_KEYBOARD)
+            return
+        cyberlink_hash, cyberlink_error = \
+            create_cyberlink(
+                account_name=db_worker.get_account_name(message.from_user.id),
+                from_hash=TWEET_HASH,
+                to_hash=ipfs_hash)
+        if cyberlink_error == 'not enough personal bandwidth':
+            bot.send_message(
+                message.chat.id,
+                f'Tweet not created\n'
+                f'You have not enough personal bandwidth',
+                reply_markup=TWEETER_KEYBOARD)
+            return
+        elif cyberlink_hash:
+            bot.send_message(
+                message.chat.id,
+                f'Tweet created: <u><a href="{CYBERPAGE_BASE_URL}/ipfs/{ipfs_hash}/meta">{ipfs_hash}</a></u>\n'
+                f'cyberLink in the transaction: <u><a href="{CYBERPAGE_URL}/tx/{cyberlink_hash}">{cyberlink_hash}</a>'
+                f'</u>\n',
+                parse_mode='HTML',
+                reply_markup=TWEETER_KEYBOARD)
+            db_worker.write_cyberlink(
+                user_id=message.from_user.id,
+                cyberlink_hash=cyberlink_hash,
+                from_ipfs_hash=TWEET_HASH,
+                to_ipfs_hash=ipfs_hash)
+            if db_worker.get_cyberlink_count(user_id=message.from_user.id) == 10:
+                transfer_state, transfer_error = transfer_tokens(
+                    account_address=db_worker.get_account_address(user_id=message.from_user.id),
+                    value=90_000_000)
+                if transfer_state:
+                    bot.send_message(
+                        message.chat.id,
+                        f'Congratulations!\n'
+                        f'You have created 10 links.\n'
+                        f'7,500,000 {TOKEN_NAME} Tokens have been transferred to your account!',
+                        reply_markup=TWEETER_KEYBOARD)
+                else:
+                    bot.send_message(
+                        message.chat.id,
+                        f'Tokens not transferred.\n'
+                        f'Error: {transfer_error}',
+                        reply_markup=TWEETER_KEYBOARD)
+        elif cyberlink_error:
+            bot.send_message(
+                message.chat.id,
+                f'CyberLink not created\n'
+                f'error: {cyberlink_error}',
+                reply_markup=TWEETER_KEYBOARD)
+        bot.send_message(
+            message.chat.id,
+            'Please send new tweet as text, file, photo, video, audio, IPFS hash, URL, contact, location, '
+            'video or voice',
+            reply_markup=TWEETER_KEYBOARD)
 
 
 @bot.message_handler(
@@ -462,78 +536,6 @@ def sign_up_user(message):
             f'Account not created\n'
             f'error: {create_account_error}',
             reply_markup=base_keyboard_reply_markup(message.from_user.id))
-
-
-@bot.message_handler(
-    func=lambda message: (((message.content_type == 'text')
-                           & (message.text.lower() not in list(set().union(TWEETER_MENU_LOWER, BASE_MENU_LOWER))))
-                          | (message.content_type in ('audio', 'contact', 'document', 'location',
-                                                      'photo', 'video', 'video_note', 'voice')))
-                         & (state[message.chat.id] == States.S_NEW_TWEET),
-    content_types=['audio', 'contact', 'document', 'location', 'photo', 'text', 'video', 'video_note', 'voice'])
-def add_tweet(message):
-    ipfs_hash, ipfs_error = message_upload_to_ipfs(message, lower_transform=False)
-    send_ipfs_notification(message, ipfs_hash, ipfs_error, message_text='')
-    if ipfs_hash:
-        if ipfs_hash == TWEET_HASH:
-            bot.send_message(
-                message.chat.id,
-                f'It is not possible to post the word **tweet**',
-                reply_markup=TWEETER_KEYBOARD)
-            return
-        cyberlink_hash, cyberlink_error = \
-            create_cyberlink(
-                account_name=db_worker.get_account_name(message.from_user.id),
-                from_hash=TWEET_HASH,
-                to_hash=ipfs_hash)
-        if cyberlink_error == 'not enough personal bandwidth':
-            bot.send_message(
-                message.chat.id,
-                f'Tweet not created\n'
-                f'You have not enough personal bandwidth',
-                reply_markup=TWEETER_KEYBOARD)
-            return
-        elif cyberlink_hash:
-            bot.send_message(
-                message.chat.id,
-                f'Tweet created: <u><a href="{CYBERPAGE_BASE_URL}/ipfs/{ipfs_hash}/meta">{ipfs_hash}</a></u>\n'
-                f'cyberLink in the transaction: <u><a href="{CYBERPAGE_URL}/tx/{cyberlink_hash}">{cyberlink_hash}</a>'
-                f'</u>\n',
-                parse_mode='HTML',
-                reply_markup=TWEETER_KEYBOARD)
-            db_worker.write_cyberlink(
-                user_id=message.from_user.id,
-                cyberlink_hash=cyberlink_hash,
-                from_ipfs_hash=TWEET_HASH,
-                to_ipfs_hash=ipfs_hash)
-            if db_worker.get_cyberlink_count(user_id=message.from_user.id) == 10:
-                transfer_state, transfer_error = transfer_tokens(
-                    account_address=db_worker.get_account_address(user_id=message.from_user.id),
-                    value=90_000_000)
-                if transfer_state:
-                    bot.send_message(
-                        message.chat.id,
-                        f'Congratulations!\n'
-                        f'You have created 10 links.\n'
-                        f'7,500,000 {TOKEN_NAME} Tokens have been transferred to your account!',
-                        reply_markup=TWEETER_KEYBOARD)
-                else:
-                    bot.send_message(
-                        message.chat.id,
-                        f'Tokens not transferred.\n'
-                        f'Error: {transfer_error}',
-                        reply_markup=TWEETER_KEYBOARD)
-        elif cyberlink_error:
-            bot.send_message(
-                message.chat.id,
-                f'CyberLink not created\n'
-                f'error: {cyberlink_error}',
-                reply_markup=TWEETER_KEYBOARD)
-        bot.send_message(
-            message.chat.id,
-            'Please send new tweet as text, file, photo, video, audio, IPFS hash, URL, contact, location, '
-            'video or voice',
-            reply_markup=TWEETER_KEYBOARD)
 
 
 @bot.message_handler(

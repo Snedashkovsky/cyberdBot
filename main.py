@@ -226,7 +226,6 @@ def add_tweet(message):
         logging.info(
             f"cyberLink for tweet was not created, from {cyberlink_startpoint_ipfs_hash[message.chat.id]}, "
             f"to {ipfs_hash}. Self cyberlink")
-        return
     elif ipfs_hash:
         cyberlink_hash, cyberlink_error = \
             create_cyberlink(
@@ -273,14 +272,14 @@ def add_tweet(message):
         elif cyberlink_error:
             bot.send_message(
                 message.chat.id,
-                f'CyberLink not created\n'
+                f'Tweet not created\n'
                 f'error: {cyberlink_error}',
                 reply_markup=TWEETER_KEYBOARD)
-        bot.send_message(
-            message.chat.id,
-            'Please send new tweet as text, file, photo, video, audio, IPFS hash, URL, contact, location, '
-            'video or voice',
-            reply_markup=TWEETER_KEYBOARD)
+    bot.send_message(
+        message.chat.id,
+        'Please send new tweet as text, file, photo, video, audio, IPFS hash, URL, contact, location, '
+        'video or voice',
+        reply_markup=TWEETER_KEYBOARD)
 
 
 @bot.message_handler(

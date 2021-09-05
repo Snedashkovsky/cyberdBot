@@ -213,14 +213,14 @@ def endpoint_cyberlink(message):
 def add_tweet(message):
     ipfs_hash, ipfs_error = message_upload_to_ipfs(message, lower_transform=False)
     send_ipfs_notification(message, ipfs_hash, ipfs_error, message_text='')
-    if ipfs_hash:
-        if ipfs_hash == TWEET_HASH:
-            bot.send_message(
-                message.chat.id,
-                f'It is not possible to post the word <u>tweet</u>',
-                parse_mode="HTML",
-                reply_markup=TWEETER_KEYBOARD)
-            return
+    if ipfs_hash == TWEET_HASH:
+        bot.send_message(
+            message.chat.id,
+            f'It is not possible to post the word <u>tweet</u>',
+            parse_mode="HTML",
+            reply_markup=TWEETER_KEYBOARD)
+        return
+    elif ipfs_hash:
         cyberlink_hash, cyberlink_error = \
             create_cyberlink(
                 account_name=db_worker.get_account_name(message.from_user.id),

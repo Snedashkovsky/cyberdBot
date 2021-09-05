@@ -1,7 +1,6 @@
 from collections import defaultdict
 import time
 import re
-import logging
 
 from src.bot_utils import create_temp_directory, send_ipfs_notification, jail_check, dict_to_md_list, \
     message_upload_to_ipfs, base_keyboard_reply_markup
@@ -9,13 +8,10 @@ from src.lcd_utils import validators_state, search_cid
 from src.bash_utils import create_cyberlink, create_account, transfer_tokens
 from config import CYBER_KEY_NAME, BASE_MENU_LOWER, MONITORING_MENU_LOWER, TWEETER_MENU_LOWER, MONITORING_KEYBOARD, \
     TWEETER_KEYBOARD, TWEET_HASH, DEV_MODE, States, bot, db_worker, CYBERPAGE_URL, CYBERPAGE_BASE_URL, TOKEN_NAME, \
-    COMMAND_LIST, SUPPORT_ACCOUNT
+    COMMAND_LIST, SUPPORT_ACCOUNT, logging
 
 # Create directory for temporary files
 create_temp_directory()
-
-# Set logging format
-logging.basicConfig(filename='cyberdbot.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Drop tables
 # db_worker.drop_all_tables()
@@ -135,15 +131,18 @@ def startpoint_cyberlink(message):
 def endpoint_cyberlink(message):
     ipfs_hash, ipfs_error = message_upload_to_ipfs(message)
     send_ipfs_notification(message, ipfs_hash, ipfs_error, message_text='')
-    if ipfs_hash:
-        state[message.chat.id] = States.S_STARTPOINT_CYBERLINK
-        if ipfs_hash == cyberlink_startpoint_ipfs_hash[message.chat.id]:
-            bot.send_message(
-                message.chat.id,
-                'From and To CID is equal.\n<u>Cannot create cyberLink to self beginning</u>.',
-                parse_mode='HTML',
-                reply_markup=base_keyboard_reply_markup(message.from_user.id))
-            return
+    if ipfs_hash is None:
+        return
+    elif ipfs_hash == cyberlink_startpoint_ipfs_hash[message.chat.id]:
+        bot.send_message(
+            message.chat.id,
+            'From and To CID is equal.\n<u>Cannot create cyberLink to self beginning</u>.',
+            parse_mode='HTML',
+            reply_markup=base_keyboard_reply_markup(message.from_user.id))
+        logging.info(
+            f"cyberLink was not created, from {cyberlink_startpoint_ipfs_hash[message.chat.id]}, to {ipfs_hash}. "
+            f"Self cyberlink")
+    elif ipfs_hash:
         cyberlink_hash, cyberlink_error = \
             create_cyberlink(
                 account_name=db_worker.get_account_name(message.from_user.id),
@@ -196,14 +195,15 @@ def endpoint_cyberlink(message):
                 f'CyberLink not created\n'
                 f'error: {cyberlink_error}',
                 reply_markup=base_keyboard_reply_markup(message.from_user.id))
-        bot.send_message(
-            message.chat.id,
-            'Please enter a keyword as a starting point for a new cyberLink or choose another service from the menu.\n'
-            'You may enter an IPFS hash, URL, text, file, photo, video, audio, contact, location, video or voice.\n'
-            'Please enter a keyword by which your content will be searchable in cyber, this will create the first part '
-            'of the cyberlink.\n'
-            'Please remember to be gentle, the search is case-senstive.',
-            reply_markup=base_keyboard_reply_markup(message.from_user.id))
+    state[message.chat.id] = States.S_STARTPOINT_CYBERLINK
+    bot.send_message(
+        message.chat.id,
+        'Please enter a keyword as a starting point for a new cyberLink or choose another service from the menu.\n'
+        'You may enter an IPFS hash, URL, text, file, photo, video, audio, contact, location, video or voice.\n'
+        'Please enter a keyword by which your content will be searchable in cyber, this will create the first part '
+        'of the cyberlink.\n'
+        'Please remember to be gentle, the search is case-sensitive.',
+        reply_markup=base_keyboard_reply_markup(message.from_user.id))
 
 
 @bot.message_handler(
@@ -217,14 +217,16 @@ def endpoint_cyberlink(message):
 def add_tweet(message):
     ipfs_hash, ipfs_error = message_upload_to_ipfs(message, lower_transform=False)
     send_ipfs_notification(message, ipfs_hash, ipfs_error, message_text='')
-    if ipfs_hash:
-        if ipfs_hash == TWEET_HASH:
-            bot.send_message(
-                message.chat.id,
-                f'It is not possible to post the word <u>tweet</u>',
-                parse_mode="HTML",
-                reply_markup=TWEETER_KEYBOARD)
-            return
+    if ipfs_hash == TWEET_HASH:
+        bot.send_message(
+            message.chat.id,
+            f'It is not possible to post the word <u>tweet</u>',
+            parse_mode="HTML",
+            reply_markup=TWEETER_KEYBOARD)
+        logging.info(
+            f"cyberLink for tweet was not created, from {cyberlink_startpoint_ipfs_hash[message.chat.id]}, "
+            f"to {ipfs_hash}. Self cyberlink")
+    elif ipfs_hash:
         cyberlink_hash, cyberlink_error = \
             create_cyberlink(
                 account_name=db_worker.get_account_name(message.from_user.id),
@@ -270,14 +272,14 @@ def add_tweet(message):
         elif cyberlink_error:
             bot.send_message(
                 message.chat.id,
-                f'CyberLink not created\n'
+                f'Tweet not created\n'
                 f'error: {cyberlink_error}',
                 reply_markup=TWEETER_KEYBOARD)
-        bot.send_message(
-            message.chat.id,
-            'Please send new tweet as text, file, photo, video, audio, IPFS hash, URL, contact, location, '
-            'video or voice',
-            reply_markup=TWEETER_KEYBOARD)
+    bot.send_message(
+        message.chat.id,
+        'Please send new tweet as text, file, photo, video, audio, IPFS hash, URL, contact, location, '
+        'video or voice',
+        reply_markup=TWEETER_KEYBOARD)
 
 
 @bot.message_handler(
@@ -502,7 +504,7 @@ def sign_up_user(message):
         try:
             db_worker.signup_user(message.from_user.id, account_data["name"], account_data["address"])
         except Exception as e:
-            print(e)
+            logging.error(e)
         bot.send_message(
             message.chat.id,
             f'Account: <b>{account_data["name"]}</b>\n'
@@ -573,6 +575,6 @@ if __name__ == '__main__':
                     none_stop=True,
                     timeout=100)
             except Exception as e:
-                print(e)
+                logging.error(e)
                 # restart in 15 sec
                 time.sleep(15)

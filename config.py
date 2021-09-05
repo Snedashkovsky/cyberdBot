@@ -3,6 +3,7 @@ from enum import Enum
 from telebot.types import ReplyKeyboardMarkup
 from telebot import TeleBot
 from dotenv import dotenv_values
+import logging
 
 from src.sql_utils import SQLighter
 
@@ -11,6 +12,9 @@ TELEBOT_TOKEN = dotenv_values('.env')['TELEBOT_TOKEN']
 bot = TeleBot(TELEBOT_TOKEN)
 
 SUPPORT_ACCOUNT = dotenv_values('.env')['SUPPORT_ACCOUNT']
+
+# Set logging format
+logging.basicConfig(filename='cyberdbot.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # cyberdBot key name in the cyber
 CYBER_KEY_NAME = dotenv_values('.env')['CYBER_KEY_NAME']

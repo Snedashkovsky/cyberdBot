@@ -1,12 +1,11 @@
 from requests import get
 from json import dumps
 from os import mkdir
-import logging
 from telebot.apihelper import ApiTelegramException, ApiException
 
 from src.lcd_utils import validators_state
 from src.ipfs_utils import upload_text, upload_file
-from config import BASE_KEYBOARD, BASE_AFTER_SIGN_UP_KEYBOARD, TELEBOT_TOKEN, db_worker, bot
+from config import BASE_KEYBOARD, BASE_AFTER_SIGN_UP_KEYBOARD, TELEBOT_TOKEN, db_worker, bot, logging
 
 
 def base_keyboard_reply_markup(user_id: int):
@@ -19,9 +18,9 @@ def create_temp_directory():
     try:
         mkdir('temp')
     except OSError:
-        print('Creation of the directory "temp" failed. Maybe directory already exists.')
+        logging.info('Creation of the directory "temp" failed. Maybe directory already exists.')
     else:
-        print('Successfully created the directory "temp".')
+        logging.info('Successfully created the directory "temp".')
 
 
 def dict_to_md_list(input_dict: dict):
@@ -81,7 +80,7 @@ def download_file_from_telegram(message, file_id):
     try:
         file_info = bot.get_file(file_id)
     except ApiException as file_info_exception:
-        print(file_info_exception)
+        logging.error(file_info_exception)
         bot.send_message(
             message.chat.id,
             'Please upload a file smaller than 20 MB',

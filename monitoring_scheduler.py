@@ -1,8 +1,7 @@
 import time
-import logging
 
 from src.bot_utils import jail_check
-from config import SCHEDULER_TIME, DEV_MODE, db_worker
+from config import SCHEDULER_TIME, DEV_MODE, db_worker, logging
 
 
 # Create tables

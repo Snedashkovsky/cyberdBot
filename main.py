@@ -139,59 +139,59 @@ def endpoint_cyberlink(message):
                 'From and To CID is equal.\n<u>Cannot create cyberLink to self beginning</u>.',
                 parse_mode='HTML',
                 reply_markup=base_keyboard_reply_markup(message.from_user.id))
-            return
-        cyberlink_hash, cyberlink_error = \
-            create_cyberlink(
-                account_name=db_worker.get_account_name(message.from_user.id),
-                from_hash=cyberlink_startpoint_ipfs_hash[message.chat.id],
-                to_hash=ipfs_hash)
-        if cyberlink_error:
+        else:
             cyberlink_hash, cyberlink_error = \
                 create_cyberlink(
-                    account_name=CYBER_KEY_NAME,
+                    account_name=db_worker.get_account_name(message.from_user.id),
                     from_hash=cyberlink_startpoint_ipfs_hash[message.chat.id],
                     to_hash=ipfs_hash)
-        if cyberlink_hash:
-            bot.send_message(
-                message.chat.id,
-                f'CyberLink created in the transaction: '
-                f'<u><a href="{CYBERPAGE_URL}/tx/{cyberlink_hash}">{cyberlink_hash}</a></u> \n',
-                parse_mode='HTML',
-                reply_markup=base_keyboard_reply_markup(message.from_user.id))
-            bot.send_message(
-                message.chat.id,
-                f'from: <u><a href="https://ipfs.io/ipfs/{cyberlink_startpoint_ipfs_hash[message.chat.id]}">'
-                f'{cyberlink_startpoint_ipfs_hash[message.chat.id]}</a></u>\n'
-                f'to: <u><a href="https://ipfs.io/ipfs/{ipfs_hash}">{ipfs_hash}</a></u>',
-                parse_mode='HTML',
-                reply_markup=base_keyboard_reply_markup(message.from_user.id))
-            db_worker.write_cyberlink(
-                user_id=message.from_user.id,
-                cyberlink_hash=cyberlink_hash,
-                from_ipfs_hash=cyberlink_startpoint_ipfs_hash[message.chat.id],
-                to_ipfs_hash=ipfs_hash)
-            if db_worker.get_cyberlink_count(user_id=message.from_user.id) == 10:
-                transfer_state, transfer_error = transfer_tokens(
-                    account_address=db_worker.get_account_address(user_id=message.from_user.id),
-                    value=90_000_000)
-                if transfer_state:
-                    bot.send_message(
-                        message.chat.id,
-                        f'Congratulations!\n'
-                        f'You have created 10 links.\n'
-                        f'7,500,000 {TOKEN_NAME} Tokens have been transferred to your account!',
-                        reply_markup=base_keyboard_reply_markup(message.from_user.id))
-                else:
-                    bot.send_message(
-                        message.chat.id,
-                        f'Tokens was not transferred.\nError: {transfer_error}',
-                        reply_markup=base_keyboard_reply_markup(message.from_user.id))
-        elif cyberlink_error:
-            bot.send_message(
-                message.chat.id,
-                f'CyberLink not created\n'
-                f'error: {cyberlink_error}',
-                reply_markup=base_keyboard_reply_markup(message.from_user.id))
+            if cyberlink_error:
+                cyberlink_hash, cyberlink_error = \
+                    create_cyberlink(
+                        account_name=CYBER_KEY_NAME,
+                        from_hash=cyberlink_startpoint_ipfs_hash[message.chat.id],
+                        to_hash=ipfs_hash)
+            if cyberlink_hash:
+                bot.send_message(
+                    message.chat.id,
+                    f'CyberLink created in the transaction: '
+                    f'<u><a href="{CYBERPAGE_URL}/tx/{cyberlink_hash}">{cyberlink_hash}</a></u> \n',
+                    parse_mode='HTML',
+                    reply_markup=base_keyboard_reply_markup(message.from_user.id))
+                bot.send_message(
+                    message.chat.id,
+                    f'from: <u><a href="https://ipfs.io/ipfs/{cyberlink_startpoint_ipfs_hash[message.chat.id]}">'
+                    f'{cyberlink_startpoint_ipfs_hash[message.chat.id]}</a></u>\n'
+                    f'to: <u><a href="https://ipfs.io/ipfs/{ipfs_hash}">{ipfs_hash}</a></u>',
+                    parse_mode='HTML',
+                    reply_markup=base_keyboard_reply_markup(message.from_user.id))
+                db_worker.write_cyberlink(
+                    user_id=message.from_user.id,
+                    cyberlink_hash=cyberlink_hash,
+                    from_ipfs_hash=cyberlink_startpoint_ipfs_hash[message.chat.id],
+                    to_ipfs_hash=ipfs_hash)
+                if db_worker.get_cyberlink_count(user_id=message.from_user.id) == 10:
+                    transfer_state, transfer_error = transfer_tokens(
+                        account_address=db_worker.get_account_address(user_id=message.from_user.id),
+                        value=90_000_000)
+                    if transfer_state:
+                        bot.send_message(
+                            message.chat.id,
+                            f'Congratulations!\n'
+                            f'You have created 10 links.\n'
+                            f'7,500,000 {TOKEN_NAME} Tokens have been transferred to your account!',
+                            reply_markup=base_keyboard_reply_markup(message.from_user.id))
+                    else:
+                        bot.send_message(
+                            message.chat.id,
+                            f'Tokens was not transferred.\nError: {transfer_error}',
+                            reply_markup=base_keyboard_reply_markup(message.from_user.id))
+            elif cyberlink_error:
+                bot.send_message(
+                    message.chat.id,
+                    f'CyberLink not created\n'
+                    f'error: {cyberlink_error}',
+                    reply_markup=base_keyboard_reply_markup(message.from_user.id))
         bot.send_message(
             message.chat.id,
             'Please enter a keyword as a starting point for a new cyberLink or choose another service from the menu.\n'

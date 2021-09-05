@@ -1,7 +1,6 @@
 from collections import defaultdict
 import time
 import re
-import logging
 
 from src.bot_utils import create_temp_directory, send_ipfs_notification, jail_check, dict_to_md_list, \
     message_upload_to_ipfs, base_keyboard_reply_markup
@@ -9,13 +8,10 @@ from src.lcd_utils import validators_state, search_cid
 from src.bash_utils import create_cyberlink, create_account, transfer_tokens
 from config import CYBER_KEY_NAME, BASE_MENU_LOWER, MONITORING_MENU_LOWER, TWEETER_MENU_LOWER, MONITORING_KEYBOARD, \
     TWEETER_KEYBOARD, TWEET_HASH, DEV_MODE, States, bot, db_worker, CYBERPAGE_URL, CYBERPAGE_BASE_URL, TOKEN_NAME, \
-    COMMAND_LIST, SUPPORT_ACCOUNT
+    COMMAND_LIST, SUPPORT_ACCOUNT, logging
 
 # Create directory for temporary files
 create_temp_directory()
-
-# Set logging format
-logging.basicConfig(filename='cyberdbot.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Drop tables
 # db_worker.drop_all_tables()
@@ -202,7 +198,7 @@ def endpoint_cyberlink(message):
             'You may enter an IPFS hash, URL, text, file, photo, video, audio, contact, location, video or voice.\n'
             'Please enter a keyword by which your content will be searchable in cyber, this will create the first part '
             'of the cyberlink.\n'
-            'Please remember to be gentle, the search is case-senstive.',
+            'Please remember to be gentle, the search is case-sensitive.',
             reply_markup=base_keyboard_reply_markup(message.from_user.id))
 
 
@@ -502,7 +498,7 @@ def sign_up_user(message):
         try:
             db_worker.signup_user(message.from_user.id, account_data["name"], account_data["address"])
         except Exception as e:
-            print(e)
+            logging.error(e)
         bot.send_message(
             message.chat.id,
             f'Account: <b>{account_data["name"]}</b>\n'
@@ -573,6 +569,6 @@ if __name__ == '__main__':
                     none_stop=True,
                     timeout=100)
             except Exception as e:
-                print(e)
+                logging.error(e)
                 # restart in 15 sec
                 time.sleep(15)

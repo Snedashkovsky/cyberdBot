@@ -119,7 +119,6 @@ class SQLighter:
                 f'''SELECT chat_id
                     FROM  scheduler
                     WHERE state = 1''').fetchall()
-            print(result)
             if len(result) > 0:
                 return [item[0] for item in result]
             return []

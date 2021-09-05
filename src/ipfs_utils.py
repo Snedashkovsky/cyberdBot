@@ -1,10 +1,10 @@
 import requests
 
-from config import IPFS_HOST
+from config import IPFS_HOST, logging
 
 
 def upload_text(text: str):
-    print(f'Uploading text: {text}')
+    logging.info(f'Uploading text: {text}')
     try:
         files = {
             'file': ('text', text)
@@ -12,12 +12,12 @@ def upload_text(text: str):
         response = requests.post(f'{IPFS_HOST}/api/v0/add', files=files)
         return response.json()['Hash'], None
     except Exception as upload_error:
-        print(upload_error)
+        logging.error(upload_error)
         return None, upload_error
 
 
 def upload_file(file_name: str):
-    print(f'Uploading file: {file_name}')
+    logging.info(f'Uploading file: {file_name}')
     try:
         files = {
             'file': ('file_name', open(file_name, 'rb'))
@@ -25,5 +25,5 @@ def upload_file(file_name: str):
         response = requests.post(f'{IPFS_HOST}/api/v0/add', files=files)
         return response.json()['Hash'], None
     except Exception as upload_error:
-        print(upload_error)
+        logging.error(upload_error)
         return None, upload_error

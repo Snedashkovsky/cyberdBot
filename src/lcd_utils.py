@@ -1,7 +1,6 @@
 from requests import get
-import logging
 
-from config import LCD_HOST
+from config import LCD_HOST, logging
 from cachetools.func import ttl_cache
 
 

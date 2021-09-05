@@ -139,6 +139,9 @@ def endpoint_cyberlink(message):
             'From and To CID is equal.\n<u>Cannot create cyberLink to self beginning</u>.',
             parse_mode='HTML',
             reply_markup=base_keyboard_reply_markup(message.from_user.id))
+        logging.info(
+            f"cyberLink was not created, from {cyberlink_startpoint_ipfs_hash[message.chat.id]}, to {ipfs_hash}. "
+            f"Self cyberlink")
     elif ipfs_hash:
         cyberlink_hash, cyberlink_error = \
             create_cyberlink(
@@ -220,6 +223,9 @@ def add_tweet(message):
             f'It is not possible to post the word <u>tweet</u>',
             parse_mode="HTML",
             reply_markup=TWEETER_KEYBOARD)
+        logging.info(
+            f"cyberLink for tweet was not created, from {cyberlink_startpoint_ipfs_hash[message.chat.id]}, "
+            f"to {ipfs_hash}. Self cyberlink")
         return
     elif ipfs_hash:
         cyberlink_hash, cyberlink_error = \

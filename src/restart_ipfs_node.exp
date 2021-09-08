@@ -1,0 +1,8 @@
+#!/usr/bin/expect -f
+
+set timeout -1
+
+spawn tmux send-keys -t ipfs C-c
+sleep 2
+spawn tmux send-keys -t ipfs "ipfs daemon" C-m
+sleep 2

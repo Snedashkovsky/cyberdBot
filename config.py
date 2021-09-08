@@ -42,6 +42,9 @@ INVESTMINT_QUERY = dotenv_values('.env')['INVESTMINT_QUERY']
 # Shell query for unjail validator
 UNJAIL_VALIDATOR_QUERY = dotenv_values('.env')['UNJAIL_VALIDATOR_QUERY']
 
+# Shell query for IPFS node restart
+IPFS_RESTART_QUERY = dotenv_values('.env')['IPFS_RESTART_QUERY']
+
 # IPFS HOST
 IPFS_HOST = dotenv_values('.env')['IPFS_HOST']
 

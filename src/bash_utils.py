@@ -1,7 +1,7 @@
 from subprocess import Popen, PIPE
 import re
 
-from config import CYBERLINK_CREATION_QUERY, ACCOUNT_CREATION_QUERY, TRANSFER_QUERY, \
+from config import CYBERLINK_CREATION_QUERY, ACCOUNT_CREATION_QUERY, TRANSFER_QUERY, IPFS_RESTART_QUERY, \
     UNJAIL_VALIDATOR_QUERY, DELEGATE_QUERY, INVESTMINT_QUERY, VALIDATOR_ADDRESS, TOKEN_NAME, logging
 
 
@@ -177,3 +177,20 @@ def unjail_validator(query: str = UNJAIL_VALIDATOR_QUERY):
         logging.error(
             f"Unjail transaction was not completed successfully. Error {error_transfer_tokens}")
         return None, error_transfer_tokens
+
+
+def restart_ipfs_node(query: str = IPFS_RESTART_QUERY):
+    try:
+        output, error_execute_bash = \
+            execute_bash(query)
+        if error_execute_bash:
+            logging.error(
+                f"IPFS node restart was not completed successfully. Error {error_execute_bash}")
+            return None, error_execute_bash
+        logging.info(
+            f"IPFS node restart was completed successfully")
+        return True, None
+    except Exception as error_ipfs_restart:
+        logging.error(
+            f"IPFS node restart was not completed successfully. Error {error_ipfs_restart}")
+        return None, error_ipfs_restart

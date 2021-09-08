@@ -73,7 +73,7 @@ def upload_to_ipfs(message):
     func=lambda message: (state[message.chat.id] == States.S_SEARCH)
                          & (message.text is None or message.text.lower() not in BASE_MENU_LOWER),
     content_types=['text'])
-def search(message):
+def search(message, number_of_search_results: int = 5):
     ipfs_hash, error = message_upload_to_ipfs(message)
     send_ipfs_notification(message=message,
                            ipfs_hash=ipfs_hash,
@@ -83,9 +83,10 @@ def search(message):
     if ipfs_hash:
         search_list, search_error = search_cid(ipfs_hash)
         if search_list:
-            search_list = search_list[:min(len(search_list), 5)]
-            message_text = 'Search result:\n' + ''.join(
-                f'<u><a href="https://ipfs.io/ipfs/{item["cid"]}">{item["cid"]}</a></u>\n' for item in search_list)
+            search_list = search_list[:min(len(search_list), number_of_search_results)]
+            message_text = f'Top {number_of_search_results} search results:\n' + ''.join(
+                f'<u><a href="https://ipfs.io/ipfs/{item["cid"]}">{item["cid"]}</a></u>\n' for item in search_list) + \
+                f'\nother results on the <u><a href="{CYBERPAGE_BASE_URL}/search/{ipfs_hash}">cyb.ai</a></u>'
         elif search_error == 'CID not found':
             message_text = 'The content identifier not found in the cyber graph'
         else:

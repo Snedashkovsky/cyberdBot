@@ -50,12 +50,12 @@ Let's delegate, investmint to Volt and Ampere by <a href="{CYBERPAGE_BASE_URL}/m
 Go for it!'''
     elif token_name == MILLIAMPERE_TOKEN_NAME:
         return f'''
-Also @cyberdBot transferred <b>{transfer_value} {token_name}</b> to you.
+Also @cyberdBot transferred <b>{int(transfer_value // 1e3)} {token_name[5:]}</b> to you.
 These tokens shall not be migrated to the production network too.
 AMPERE token will give weight to your cyberLinks.'''
     elif token_name == MILLIVOLT_TOKEN_NAME:
         return f'''
-Also @cyberdBot transferred <b>{transfer_value} {token_name}</b> to you.
+@cyberdBot transferred <b>{int(transfer_value // 1e3)} {token_name[5:]}</b> to you.
 These tokens shall not be migrated to the production network.
 Your bandwidth can be enough to generate at least <b>1 link per day</b>.
 Let's tweet and create cyberLinks by @cyberdBot or <a href="{CYBERPAGE_BASE_URL}">cyb.ai</a>.

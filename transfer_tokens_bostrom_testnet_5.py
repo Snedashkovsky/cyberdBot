@@ -53,7 +53,7 @@ def message_transfer_with_links(transfer_value: float, links_amount: int, addres
 @cyberdBot received 1,178 M{TOKEN_NAME} from Game of Link and distributes this prize between accounts in proportion to the number of created cyberLinks.
 You created {int(links_amount):>,} cyberLinks.
 <b>{transfer_value} M{TOKEN_NAME}</b> has been transferred to your address <u><a href="{CYBERPAGE_URL}/contract/{address}">{address}</a></u>, including <b>{token_for_links_amount} M{TOKEN_NAME}</b> reward for cyberLink creation.
-Remember, this tokens will not be migrated to the production network.
+Remember, these tokens shall not be migrated to the production network.
 Let's delegate, investmint to Volt and Ampere by <a href="{CYBERPAGE_BASE_URL}/mint">cyb.ai/mint</a> and <a href="https://github.com/chainapsis/keplr-extension">Keplr wallet</a>.
 {users_message}'''
 
@@ -207,7 +207,7 @@ def run():
     print(f'Total cyberLinks created by cyberdBot {total_cyberlinks:>,}\n'
           f'Gift per created cyberLink {gift_per_link:>,} {TOKEN_NAME}')
 
-    for df_index in users_and_links_df.index[7:8]:
+    for df_index in users_and_links_df.index:
 
         row = users_and_links_df.iloc[df_index].copy()
         token_amount = TRANSFER_VALUE_LEADERS if row.number_of_cyberlinks >= 10 else TRANSFER_VALUE_NEW_USERS

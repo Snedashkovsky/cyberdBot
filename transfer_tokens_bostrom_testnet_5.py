@@ -52,9 +52,7 @@ Go for it!'''
         return f'''
 Also @cyberdBot transferred <b>{transfer_value} {token_name}</b> to you.
 These tokens shall not be migrated to the production network too.
-AMPERE token will give weight to your cyberLinks.
-Let's tweet and create cyberLinks by @cyberdBot or <a href="{CYBERPAGE_BASE_URL}">cyb.ai</a>.
-Go for it!'''
+AMPERE token will give weight to your cyberLinks.'''
     elif token_name == MILLIVOLT_TOKEN_NAME:
         return f'''
 Also @cyberdBot transferred <b>{transfer_value} {token_name}</b> to you.

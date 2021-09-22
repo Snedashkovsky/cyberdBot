@@ -32,7 +32,7 @@ You can use this mnemonic phrase to access the bostrom address by any wallet (e.
 def message_transfer_boot(transfer_value: int, address: str, token_name: str = TOKEN_NAME) -> str:
     return f'''
 @cyberdBot transferred <b>{transfer_value} M{token_name}</b> to your address <u><a href="{CYBERPAGE_URL}/contract/{address}">{address}</a></u>.
-Remember, this tokens will not be migrated to the production network.
+Remember, these tokens shall not be migrated to the production network.
 Let's delegate, investmint to Volt and Ampere by <a href="{CYBERPAGE_BASE_URL}/mint">cyb.ai/mint</a>.
 {NEW_USER_MESSAGE}
 Go for it!'''
@@ -40,8 +40,8 @@ Go for it!'''
 
 def message_transfer_ampere(transfer_value: int, token_name: str = MILLIAMPERE_TOKEN_NAME) -> str:
     return f'''
-@cyberdBot transferred <b>{transfer_value} {token_name}</b> to you.
-Remember, this tokens will not be migrated to the production network.
+Also @cyberdBot transferred <b>{transfer_value} {token_name}</b> to you.
+These tokens shall not be migrated to the production network too.
 Your bandwidth can be enough to generate at least <b>1 link per day</b>.
 Let's tweet and create cyberLinks by @cyberdBot or <a href="{CYBERPAGE_BASE_URL}">cyb.ai</a>.
 Go for it!'''
@@ -97,7 +97,7 @@ def send_message_genesis(row: pd.Series) -> None:
             print('Chat not found')
 
 
-def send_message_transfer(row: pd.Series, transfer_value: int, new_bostrom_address: str = '', token_name: str = TOKEN_NAME) -> None:
+def send_message_transfer(row: pd.Series, transfer_value: int, gift_per_link: float, new_bostrom_address: str = '', token_name: str = TOKEN_NAME) -> None:
     user_message = '' if row.number_of_cyberlinks >= 10 else NEW_USER_MESSAGE
     if token_name == MILLIAMPERE_TOKEN_NAME:
         message_text = \
@@ -182,14 +182,14 @@ def compute_users_and_links(load_new_data: bool = LOAD_NEW_DATA) -> pd.DataFrame
                 converters={"genesis": lambda x: x.strip("[]").split(", ") if x != '[]' else []})
 
 
-def transfer_tokens_handler(row: pd.Series, transfer_value: int, token_name: str = TOKEN_NAME) -> bool:
+def transfer_tokens_handler(row: pd.Series, transfer_value: int, gift_per_link: float = 0, token_name: str = TOKEN_NAME) -> bool:
     _transfer_success, _transfer_error = \
         transfer_tokens(
             account_address=row.address,
             value=transfer_value,
             token_name=token_name)
     if _transfer_success:
-        send_message_transfer(row=row, transfer_value=transfer_value, token_name=token_name)
+        send_message_transfer(row=row, transfer_value=transfer_value, gift_per_link=gift_per_link, token_name=token_name)
         return True
     else:
         print(f'\nUnsuccessful transfer {transfer_value} {token_name} to {row.address}, user id {row.user_id}')
@@ -219,7 +219,7 @@ def run():
                 continue
             db_worker.update_account_address(user_id=row.user_id, new_address=row.address)
 
-        transfer_tokens_handler(row=row, transfer_value=transfer_value)
+        transfer_tokens_handler(row=row, transfer_value=transfer_value, gift_per_link=gift_per_link)
         transfer_tokens_handler(row=row, transfer_value=MILLIAMPERE_TRANSFER_VALUE, token_name=MILLIAMPERE_TOKEN_NAME)
 
         # send_message_genesis(row)

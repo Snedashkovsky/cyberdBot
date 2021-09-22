@@ -12,7 +12,9 @@ from config import BASE_AFTER_SIGN_UP_KEYBOARD, db_worker, bot, TOKEN_NAME, CYBE
 TRANSFER_VALUE_NEW_USERS = 10_000_000
 TRANSFER_VALUE_LEADERS = 100_000_000
 MILLIAMPERE_TRANSFER_VALUE = 1_000
+MILLIVOLT_TRANSFER_VALUE = 1_000
 MILLIAMPERE_TOKEN_NAME = 'MILLIAMPERE'
+MILLIVOLT_TOKEN_NAME = 'MILLIVOLT'
 TOTAL_GOL_GIFT = 1_178_234_463
 LOAD_NEW_DATA = True
 CREATE_NEW_ADDRESS_COLUMN = False
@@ -29,33 +31,37 @@ Your genesis balance is <b>{genesis_balance}</b>.
 You can use this mnemonic phrase to access the bostrom address by any wallet (e.g. Keplr).'''
 
 
-def message_transfer_boot(transfer_value: int, address: str, token_name: str = TOKEN_NAME) -> str:
-    return f'''
-@cyberdBot transferred <b>{transfer_value} M{token_name}</b> to your address <u><a href="{CYBERPAGE_URL}/contract/{address}">{address}</a></u>.
+def message_transfer(transfer_value: float, address: str = '', links_amount: int = 0, token_for_links_amount: float = 0,
+                     users_message: str = '', token_name: str = TOKEN_NAME) -> str:
+    if token_name == TOKEN_NAME and links_amount >= 1:
+        return f'''
+@cyberdBot received 1,178 M{TOKEN_NAME} from Game of Link and distributes this prize between accounts in proportion to the number of created cyberLinks.
+You created {int(links_amount):>,} cyberLinks.
+<b>{round(transfer_value / 1e6, 1)} M{TOKEN_NAME}</b> has been transferred to your address <u><a href="{CYBERPAGE_URL}/contract/{address}">{address}</a></u>, including <b>{token_for_links_amount} M{TOKEN_NAME}</b> reward for cyberLink creation.
+Remember, these tokens shall not be migrated to the production network.
+Let's delegate, investmint to Volt and Ampere by <a href="{CYBERPAGE_BASE_URL}/mint">cyb.ai/mint</a> and <a href="https://github.com/chainapsis/keplr-extension">Keplr wallet</a>.
+{users_message}'''
+    elif token_name == TOKEN_NAME:
+        return f'''
+@cyberdBot transferred <b>{int(transfer_value // 1e6)} M{token_name}</b> to your address <u><a href="{CYBERPAGE_URL}/contract/{address}">{address}</a></u>.
 Remember, these tokens shall not be migrated to the production network.
 Let's delegate, investmint to Volt and Ampere by <a href="{CYBERPAGE_BASE_URL}/mint">cyb.ai/mint</a>.
 {NEW_USER_MESSAGE}
 Go for it!'''
-
-
-def message_transfer_ampere(transfer_value: int, token_name: str = MILLIAMPERE_TOKEN_NAME) -> str:
-    return f'''
+    elif token_name == MILLIAMPERE_TOKEN_NAME:
+        return f'''
 Also @cyberdBot transferred <b>{transfer_value} {token_name}</b> to you.
 These tokens shall not be migrated to the production network too.
+AMPERE token will give weight to your cyberLinks.
+Let's tweet and create cyberLinks by @cyberdBot or <a href="{CYBERPAGE_BASE_URL}">cyb.ai</a>.
+Go for it!'''
+    elif token_name == MILLIVOLT_TOKEN_NAME:
+        return f'''
+Also @cyberdBot transferred <b>{transfer_value} {token_name}</b> to you.
+These tokens shall not be migrated to the production network.
 Your bandwidth can be enough to generate at least <b>1 link per day</b>.
 Let's tweet and create cyberLinks by @cyberdBot or <a href="{CYBERPAGE_BASE_URL}">cyb.ai</a>.
 Go for it!'''
-
-
-def message_transfer_with_links(transfer_value: float, links_amount: int, address: str,
-                                token_for_links_amount: float, users_message: str) -> str:
-    return f'''
-@cyberdBot received 1,178 M{TOKEN_NAME} from Game of Link and distributes this prize between accounts in proportion to the number of created cyberLinks.
-You created {int(links_amount):>,} cyberLinks.
-<b>{transfer_value} M{TOKEN_NAME}</b> has been transferred to your address <u><a href="{CYBERPAGE_URL}/contract/{address}">{address}</a></u>, including <b>{token_for_links_amount} M{TOKEN_NAME}</b> reward for cyberLink creation.
-Remember, these tokens shall not be migrated to the production network.
-Let's delegate, investmint to Volt and Ampere by <a href="{CYBERPAGE_BASE_URL}/mint">cyb.ai/mint</a> and <a href="https://github.com/chainapsis/keplr-extension">Keplr wallet</a>.
-{users_message}'''
 
 
 def sign_up_user(user_id: int, account_name: str):
@@ -97,23 +103,25 @@ def send_message_genesis(row: pd.Series) -> None:
             print('Chat not found')
 
 
-def send_message_transfer(row: pd.Series, transfer_value: int, gift_per_link: float, new_bostrom_address: str = '', token_name: str = TOKEN_NAME) -> None:
+def send_message_transfer(row: pd.Series, transfer_value: int, gift_per_link: float,
+                          new_bostrom_address: str = '', token_name: str = TOKEN_NAME) -> None:
     user_message = '' if row.number_of_cyberlinks >= 10 else NEW_USER_MESSAGE
-    if token_name == MILLIAMPERE_TOKEN_NAME:
+    if token_name in (MILLIAMPERE_TOKEN_NAME, MILLIVOLT_TOKEN_NAME):
         message_text = \
-             message_transfer_ampere(transfer_value=transfer_value)
+             message_transfer(transfer_value=transfer_value, token_name=token_name)
     elif row.number_of_cyberlinks > 0:
         message_text = \
-            message_transfer_with_links(
-                transfer_value=round(transfer_value / 1e6, 1),
+            message_transfer(
+                transfer_value=transfer_value,
                 links_amount=row.number_of_cyberlinks,
                 address=row.address,
                 token_for_links_amount=round(row.number_of_cyberlinks * gift_per_link / 1e6, 1),
                 users_message=user_message)
     else:
-        message_text = message_transfer_boot(int(transfer_value // 1e6), address=row.address)
+        message_text = \
+            message_transfer(transfer_value=transfer_value, address=row.address)
     print(f'\nSend transfer message to user_id {row.user_id}, link number {row.number_of_cyberlinks}, cyber address {row.address}, '
-          f'transfer value {transfer_value:>,} {"new bostrom address " + new_bostrom_address if new_bostrom_address else ""}')
+          f'transfer value {transfer_value:>,}{token_name.lower()} {"new bostrom address " + new_bostrom_address if new_bostrom_address else ""}')
     try:
         bot.send_message(
             chat_id=row.user_id,
@@ -182,14 +190,19 @@ def compute_users_and_links(load_new_data: bool = LOAD_NEW_DATA) -> pd.DataFrame
                 converters={"genesis": lambda x: x.strip("[]").split(", ") if x != '[]' else []})
 
 
-def transfer_tokens_handler(row: pd.Series, transfer_value: int, gift_per_link: float = 0, token_name: str = TOKEN_NAME) -> bool:
+def transfer_tokens_handler(row: pd.Series, transfer_value: int,
+                            gift_per_link: float = 0, token_name: str = TOKEN_NAME) -> bool:
     _transfer_success, _transfer_error = \
         transfer_tokens(
             account_address=row.address,
             value=transfer_value,
             token_name=token_name)
     if _transfer_success:
-        send_message_transfer(row=row, transfer_value=transfer_value, gift_per_link=gift_per_link, token_name=token_name)
+        send_message_transfer(
+            row=row,
+            transfer_value=transfer_value,
+            gift_per_link=gift_per_link,
+            token_name=token_name)
         return True
     else:
         print(f'\nUnsuccessful transfer {transfer_value} {token_name} to {row.address}, user id {row.user_id}')
@@ -221,6 +234,7 @@ def run():
 
         transfer_tokens_handler(row=row, transfer_value=transfer_value, gift_per_link=gift_per_link)
         transfer_tokens_handler(row=row, transfer_value=MILLIAMPERE_TRANSFER_VALUE, token_name=MILLIAMPERE_TOKEN_NAME)
+        transfer_tokens_handler(row=row, transfer_value=MILLIVOLT_TRANSFER_VALUE, token_name=MILLIVOLT_TOKEN_NAME)
 
         # send_message_genesis(row)
 

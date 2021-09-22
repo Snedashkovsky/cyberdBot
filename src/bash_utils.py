@@ -45,9 +45,9 @@ def create_cyberlink(account_name: str, from_hash: str, to_hash: str, query: str
                 f"Error {error_execute_bash}")
             return None, 'Cannot connect to node'
 
-        _logs = extract_from_console(_output, ['logs'])
-        _raw_log = extract_from_console(_output, ['raw_log'])
-        _creation_error = extract_from_console(_output, ['Error'])
+        _logs = extract_from_console(_output, ['logs'])[0][1]
+        _raw_log = extract_from_console(_output, ['raw_log'])[0][1]
+        _creation_error = extract_from_console(_output, ['Error'])[0][1]
 
         if (len(_raw_log) > 0 and _raw_log[0][1] == 'not enough personal bandwidth'.replace(' ', '')) \
                 or (len(_creation_error) > 0):
@@ -109,11 +109,15 @@ def transfer_tokens(account_address: str, value: int, token_name: str = TOKEN_NA
     try:
         _output, error_execute_bash = \
             execute_bash(f'{query} {account_address} {str(value) + token_name.lower()}')
-        if len(extract_from_console(_output, ['txhash'])) > 0:
+        if len(extract_from_console(_output, ['txhash'])[0][1]) > 0 \
+                and len(extract_from_console(_output, ['data'])[0][1]) > 0:
             logging.info(
                 f"Tokens was transferred to {account_address} value {value}{token_name} "
                 f"txhash {extract_from_console(_output, ['txhash'])}")
             return True, None
+        elif len(extract_from_console(_output, ['txhash'])[0][1]) > 0 \
+                and len(extract_from_console(_output, ['data'])[0][1]) == 0:
+            error_execute_bash = 'failed to execute message, insufficient funds'
         logging.error(
             f"Tokens was not transferred to {account_address} value {value}{token_name}. Error {error_execute_bash}")
         return None, error_execute_bash
@@ -127,10 +131,11 @@ def delegate_tokens(account_address: str, value: int, validator: str = VALIDATOR
     try:
         _output, error_execute_bash = \
             execute_bash(f'{query} {account_address} {str(value) + TOKEN_NAME.lower()} {validator}')
-        if len(extract_from_console(_output, ['txhash'])) > 0 or len(extract_from_console(_output, ['txhash'])) > 0:
+        if len(extract_from_console(_output, ['txhash'])[0][1]) > 0 \
+                or len(extract_from_console(_output, ['txhash'])[0][1]) > 0:
             logging.info(
                 f"Tokens was delegated from {account_address} value {value}{TOKEN_NAME} "
-                f"txhash {extract_from_console(_output, ['txhash'])}")
+                f"txhash {extract_from_console(_output, ['txhash'])[0][1]}")
             return True, None
         logging.error(
             f"Tokens was not delegated from {account_address} value {value}{TOKEN_NAME}. Error {error_execute_bash}")
@@ -145,10 +150,10 @@ def investmint_tokens(account_address: str, value: int, investmint_token: str = 
     try:
         _output, error_execute_bash = \
             execute_bash(f'{query} {account_address} {str(value) + "s" + TOKEN_NAME.lower()} {investmint_token}')
-        if len(extract_from_console(_output, ['txhash'])) > 0:
+        if len(extract_from_console(_output, ['txhash'])[0][1]) > 0:
             logging.info(
                 f"Tokens was investminted from {account_address} to {investmint_token} value {value}s{TOKEN_NAME} "
-                f"txhash {extract_from_console(_output, ['txhash'])}")
+                f"txhash {extract_from_console(_output, ['txhash'])[0][1]}")
             return True, None
         logging.error(
             f"Tokens was not investminted from {account_address} to {investmint_token} value {value}s{TOKEN_NAME}. "
@@ -165,10 +170,10 @@ def unjail_validator(query: str = UNJAIL_VALIDATOR_QUERY):
     try:
         _output, error_execute_bash = \
             execute_bash(f'{query}')
-        if len(extract_from_console(_output, ['txhash'])) > 0:
+        if len(extract_from_console(_output, ['txhash'])[0][1]) > 0:
             logging.info(
                 f"Unjail transaction was completed successfully"
-                f"txhash {extract_from_console(_output, ['txhash'])}")
+                f"txhash {extract_from_console(_output, ['txhash'])[0][1]}")
             return True, None
         logging.error(
             f"Unjail transaction was not completed successfully. Error {error_execute_bash}")

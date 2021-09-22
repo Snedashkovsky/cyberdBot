@@ -105,21 +105,21 @@ def create_account(account_name: str, query: str = ACCOUNT_CREATION_QUERY):
         return None, error_account_creation
 
 
-def transfer_tokens(account_address: str, value: int, query: str = TRANSFER_QUERY):
+def transfer_tokens(account_address: str, value: int, token_name: str = TOKEN_NAME, query: str = TRANSFER_QUERY):
     try:
         _output, error_execute_bash = \
-            execute_bash(f'{query} {account_address} {str(value) + TOKEN_NAME.lower()}')
+            execute_bash(f'{query} {account_address} {str(value) + token_name.lower()}')
         if len(extract_from_console(_output, ['txhash'])) > 0:
             logging.info(
-                f"Tokens was transferred to {account_address} value {value}{TOKEN_NAME} "
+                f"Tokens was transferred to {account_address} value {value}{token_name} "
                 f"txhash {extract_from_console(_output, ['txhash'])}")
             return True, None
         logging.error(
-            f"Tokens was not transferred to {account_address} value {value}{TOKEN_NAME}. Error {error_execute_bash}")
+            f"Tokens was not transferred to {account_address} value {value}{token_name}. Error {error_execute_bash}")
         return None, error_execute_bash
     except Exception as error_transfer_tokens:
         logging.error(
-            f"Tokens was not transferred to {account_address} value {value}{TOKEN_NAME}. Error {error_transfer_tokens}")
+            f"Tokens was not transferred to {account_address} value {value}{token_name}. Error {error_transfer_tokens}")
         return None, error_transfer_tokens
 
 

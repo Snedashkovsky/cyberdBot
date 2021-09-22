@@ -13,7 +13,7 @@ def check_send_messages():
         chat_id_list = db_worker.get_all_scheduler_states()
         for chat_id in chat_id_list:
             jail_check(chat_id,  pressed_button=False)
-        logging.info(f'Validator status sent')
+        logging.info(f'Validators status sent for {len(chat_id_list)} users')
         time.sleep(SCHEDULER_TIME)
 
 

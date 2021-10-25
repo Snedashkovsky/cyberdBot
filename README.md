@@ -41,3 +41,6 @@ issue - Create issue or send feedback
 
 ## Requirements
 Python 3.6 or higher
+
+## Data for the Bostrom Genesis 
+[Bot user addresses with the number of created cyberlinks](https://ipfs.io/ipfs/QmWLoxH5F1tFvoiMEq8JEGjHsrT7JSkRxzhUGV1Lrn1GWk) as of 10/08/2021.

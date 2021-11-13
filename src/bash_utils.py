@@ -109,15 +109,11 @@ def transfer_tokens(account_address: str, value: int, token_name: str = TOKEN_NA
     try:
         _output, error_execute_bash = \
             execute_bash(f'{query} {account_address} {str(value) + token_name.lower()}')
-        if len(extract_from_console(_output, ['txhash'])[0][1]) > 0 \
-                and len(extract_from_console(_output, ['data'])[0][1]) > 0:
+        if len(extract_from_console(_output, ['txhash'])[0][1]) > 0:
             logging.info(
                 f"Tokens was transferred to {account_address} value {value}{token_name} "
                 f"txhash {extract_from_console(_output, ['txhash'])}")
             return True, None
-        elif len(extract_from_console(_output, ['txhash'])[0][1]) > 0 \
-                and len(extract_from_console(_output, ['data'])[0][1]) == 0:
-            error_execute_bash = 'failed to execute message, insufficient funds'
         logging.error(
             f"Tokens was not transferred to {account_address} value {value}{token_name}. Error {error_execute_bash}")
         return None, error_execute_bash

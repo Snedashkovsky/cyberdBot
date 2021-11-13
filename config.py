@@ -60,13 +60,13 @@ CYBERPAGE_URL = 'https://cyb.ai/network/bostrom'
 CYBERPAGE_BASE_URL = 'https://cyb.ai'
 
 # GraphQL host
-GRAPHQL_HOST = 'https://index.bostromdev.cybernode.ai/v1/graphql'
+GRAPHQL_HOST = 'https://index.bostrom.cybernode.ai/v1/graphql'
 
 # RPC host
-RPC_HOST = 'https://rpc.bostromdev.cybernode.ai'
+RPC_HOST = 'https://rpc.bostrom.cybernode.ai'
 
 # LCD host
-LCD_HOST = 'https://lcd.bostromdev.cybernode.ai'
+LCD_HOST = 'https://lcd.bostrom.cybernode.ai'
 
 # Hourly notifications
 SCHEDULER_TIME = 60 * 60

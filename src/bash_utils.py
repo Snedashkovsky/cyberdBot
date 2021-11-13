@@ -47,7 +47,7 @@ def create_cyberlink(account_name: str, from_hash: str, to_hash: str, query: str
 
         _logs = extract_from_console(_output, ['logs'])[0][1]
         _raw_log = extract_from_console(_output, ['raw_log'])[0][1]
-        _creation_error = extract_from_console(_output, ['Error'])[0][1]
+        _creation_error = extract_from_console(_output, ['Error'])
 
         if (len(_raw_log) > 0 and _raw_log[0][1] == 'not enough personal bandwidth'.replace(' ', '')) \
                 or (len(_creation_error) > 0):

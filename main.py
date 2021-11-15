@@ -344,8 +344,8 @@ def main_menu(message):
             message.chat.id,
             f'To the maximum extent permitted by law, we make no guarantee, representation or warranty and expressly '
             f'disclaim liability (whether to you or any person).\n'
-            f'Your use of this bot is voluntary and at your sole risk.\n'
-            f'In the event of any loss, hack or theft of {TOKEN_NAME} tokens from your account, you acknowledge and '
+            f'Your use of this bot and addresses created by the bot is voluntary and at your sole risk.\n'
+            f'In the event of any loss, hack or theft of tokens from your account, you acknowledge and '
             f'confirm that you shall have no right(s), claim(s) or causes of action in any way whatsoever against us.',
             reply_markup=base_keyboard_reply_markup(message.from_user.id))
         bot.send_message(

@@ -175,21 +175,11 @@ def endpoint_cyberlink(message):
                 from_ipfs_hash=cyberlink_startpoint_ipfs_hash[message.chat.id],
                 to_ipfs_hash=ipfs_hash)
             if db_worker.get_cyberlink_count(user_id=message.from_user.id) == 10:
-                transfer_state, transfer_error = transfer_tokens(
-                    account_address=db_worker.get_account_address(user_id=message.from_user.id),
-                    value=90_000_000)
-                if transfer_state:
-                    bot.send_message(
-                        message.chat.id,
-                        f'Congratulations!\n'
-                        f'You have created 10 links.\n'
-                        f'7,500,000 {TOKEN_NAME} Tokens have been transferred to your account!',
-                        reply_markup=base_keyboard_reply_markup(message.from_user.id))
-                else:
-                    bot.send_message(
-                        message.chat.id,
-                        f'Tokens was not transferred.\nError: {transfer_error}',
-                        reply_markup=base_keyboard_reply_markup(message.from_user.id))
+                bot.send_message(
+                    message.chat.id,
+                    f'Congratulations!\n'
+                    f'You have created 10 links.',
+                    reply_markup=base_keyboard_reply_markup(message.from_user.id))
         elif cyberlink_error:
             bot.send_message(
                 message.chat.id,
@@ -254,22 +244,11 @@ def add_tweet(message):
                 from_ipfs_hash=TWEET_HASH,
                 to_ipfs_hash=ipfs_hash)
             if db_worker.get_cyberlink_count(user_id=message.from_user.id) == 10:
-                transfer_state, transfer_error = transfer_tokens(
-                    account_address=db_worker.get_account_address(user_id=message.from_user.id),
-                    value=90_000_000)
-                if transfer_state:
-                    bot.send_message(
-                        message.chat.id,
-                        f'Congratulations!\n'
-                        f'You have created 10 links.\n'
-                        f'7,500,000 {TOKEN_NAME} Tokens have been transferred to your account!',
-                        reply_markup=TWEETER_KEYBOARD)
-                else:
-                    bot.send_message(
-                        message.chat.id,
-                        f'Tokens not transferred.\n'
-                        f'Error: {transfer_error}',
-                        reply_markup=TWEETER_KEYBOARD)
+                bot.send_message(
+                    message.chat.id,
+                    f'Congratulations!\n'
+                    f'You have created 10 links',
+                    reply_markup=TWEETER_KEYBOARD)
         elif cyberlink_error:
             bot.send_message(
                 message.chat.id,
@@ -365,8 +344,8 @@ def main_menu(message):
             message.chat.id,
             f'To the maximum extent permitted by law, we make no guarantee, representation or warranty and expressly '
             f'disclaim liability (whether to you or any person).\n'
-            f'Your use of this bot is voluntary and at your sole risk.\n'
-            f'In the event of any loss, hack or theft of {TOKEN_NAME} tokens from your account, you acknowledge and '
+            f'Your use of this bot and addresses created by the bot is voluntary and at your sole risk.\n'
+            f'In the event of any loss, hack or theft of tokens from your account, you acknowledge and '
             f'confirm that you shall have no right(s), claim(s) or causes of action in any way whatsoever against us.',
             reply_markup=base_keyboard_reply_markup(message.from_user.id))
         bot.send_message(
@@ -524,9 +503,7 @@ def sign_up_user(message):
             bot.send_message(
                 message.chat.id,
                 f'I have transferred 10,000,000 {TOKEN_NAME} to you account.\n'
-                f'You can create cyberlinks now!\n'
-                f'If you create more than 10 cyberlinks, I will transfer an additional 90,000,000 {TOKEN_NAME} '
-                f'to your account!',
+                f'You can create cyberlinks now!',
                 reply_markup=base_keyboard_reply_markup(message.from_user.id))
         else:
             bot.send_message(

@@ -199,8 +199,7 @@ def endpoint_cyberlink(message):
 
 @bot.message_handler(
     func=lambda message: (((message.content_type == 'text')
-                           & (message.text is not None)
-                           & (message.text.lower() not in list(
+                           & (message.text is None or message.text.lower() not in list(
                                 set().union(TWEETER_MENU_LOWER, BASE_MENU_LOWER).difference(['tweet']))))
                           | (message.content_type in ('audio', 'contact', 'document', 'location',
                                                       'photo', 'video', 'video_note', 'voice')))
@@ -522,8 +521,7 @@ def sign_up_user(message):
 
 @bot.message_handler(
     func=lambda message: ((message.content_type == 'text')
-                          & (message.text is not None)
-                          & (message.text.lower() in TWEETER_MENU_LOWER))
+                          & (message.text is None or message.text.lower() in TWEETER_MENU_LOWER))
                          & (state[message.chat.id] == States.S_NEW_TWEET),
     content_types=['text'])
 def tweet_menu(message):

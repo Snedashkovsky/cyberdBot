@@ -340,6 +340,12 @@ def main_menu(message):
                 f'Telegram account must have been created over a year ago.',
                 reply_markup=base_keyboard_reply_markup(message.from_user.id))
             return
+        bot.send_message(
+            message.chat.id,
+            f'All tokens have been distributed, wait for further announcements in the group',
+            reply_markup=base_keyboard_reply_markup(message.from_user.id))
+        return
+
         state[message.chat.id] = States.S_SIGNUP
         bot.send_message(
             message.chat.id,

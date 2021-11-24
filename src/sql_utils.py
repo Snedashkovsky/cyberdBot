@@ -1,5 +1,6 @@
 import sqlite3
-from pandas import DataFrame
+from time import sleep
+import pandas as pd
 
 
 class SQLighter:
@@ -40,7 +41,7 @@ class SQLighter:
             return self.cursor.execute(
                 '''DROP TABLE IF EXISTS cyberlinks''').fetchall()
 
-    def drop_all_tables(self):
+    def drop_all_tables(self) -> None:
         self.drop_table_monikers()
         self.drop_table_scheduler()
         self.drop_table_accounts()
@@ -85,7 +86,7 @@ class SQLighter:
                        to_ipfs_hash STRING NOT NULL,
                        ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''').fetchall()
 
-    def create_all_tables(self):
+    def create_all_tables(self) -> None:
         self.create_table_monikers()
         self.create_table_scheduler()
         self.create_table_accounts()
@@ -101,7 +102,7 @@ class SQLighter:
                    FROM  monikers 
                    GROUP BY chat_id''').fetchall()
 
-    def get_moniker(self, chat_id: int):
+    def get_moniker(self, chat_id: int) -> list:
         """ Get moniker list for chat_id """
         with self.connection:
             result = self.cursor.execute(
@@ -112,7 +113,7 @@ class SQLighter:
                 return result.split(',')
             return []
 
-    def get_all_scheduler_states(self):
+    def get_all_scheduler_states(self) -> list:
         """ Get all chat ids and scheduler states """
         with self.connection:
             result = self.cursor.execute(
@@ -123,7 +124,7 @@ class SQLighter:
                 return [item[0] for item in result]
             return []
 
-    def get_scheduler_state(self, chat_id: int):
+    def get_scheduler_state(self, chat_id: int) -> int:
         """ Get scheduler state for chat_id """
         with self.connection:
             result = self.cursor.execute(
@@ -149,7 +150,7 @@ class SQLighter:
             return self.cursor.execute(
                 f"INSERT INTO monikers (chat_id, moniker)  VALUES({chat_id}, '{moniker}')").fetchall()
 
-    def reset_moniker(self, chat_id: int):
+    def reset_moniker(self, chat_id: int) -> int:
         """ Reset moniker list for chat_id """
         with self.connection:
             result = self.cursor.execute(
@@ -164,39 +165,43 @@ class SQLighter:
                 f"""INSERT INTO accounts (user_id, account_name, account_address, account_address_euler) 
                     VALUES({user_id}, '{account_name}', '{account_address}', '')""").fetchall()
 
-    def check_sign_user(self, user_id: int):
+    def check_sign_user(self, user_id: int) -> bool:
         """ Check if the user is signed up or not """
-        with self.connection:
-            if len(self.cursor.execute(f"SELECT * FROM accounts WHERE user_id={user_id}").fetchall()) > 0:
-                return True
-            return False
+        for _ in range(10):
+            try:
+                with self.connection:
+                    if len(self.cursor.execute(f"SELECT * FROM accounts WHERE user_id={user_id}").fetchall()) > 0:
+                        return True
+                    return False
+            except sqlite3.ProgrammingError:
+                sleep(0.1)
 
-    def write_cyberlink(self, user_id: int, cyberlink_hash: str, from_ipfs_hash: str, to_ipfs_hash: str):
+    def write_cyberlink(self, user_id: int, cyberlink_hash: str, from_ipfs_hash: str, to_ipfs_hash: str) -> None:
         """ Insert new cyberlink """
         with self.connection:
             self.cursor.execute(
                 f"""INSERT INTO cyberlinks (user_id, cyberlink_hash, from_ipfs_hash, to_ipfs_hash) 
                     VALUES({user_id}, '{cyberlink_hash}', '{from_ipfs_hash}', '{to_ipfs_hash}')""").fetchall()
 
-    def get_account_name(self, user_id: int):
+    def get_account_name(self, user_id: int) -> str:
         """ Get account address for user id """
         with self.connection:
             return self.cursor.execute(
                 f"SELECT account_name FROM accounts WHERE user_id={user_id}").fetchall()[0][0]
 
-    def get_account_address(self, user_id: int):
+    def get_account_address(self, user_id: int) -> str:
         """ Get account address for user id """
         with self.connection:
             return self.cursor.execute(
                 f"SELECT account_address FROM accounts WHERE user_id={user_id}").fetchall()[0][0]
 
-    def get_cyberlink_count(self, user_id: int):
+    def get_cyberlink_count(self, user_id: int) -> int:
         """ Get number of created cyberLinks for user id """
         with self.connection:
             return self.cursor.execute(
                 f"SELECT count(*) FROM cyberlinks WHERE user_id={user_id}").fetchall()[0][0]
 
-    def get_total_account_with_full_transfers(self):
+    def get_total_account_with_full_transfers(self) -> int:
         """ Get number of account with number of created cyberLinks more than 10 """
         with self.connection:
             return self.cursor.execute(
@@ -209,14 +214,14 @@ class SQLighter:
                        GROUP BY user_id 
                        HAVING cyberlink_count > 10)""").fetchall()[0][0]
 
-    def get_df(self, query: str, columns=None):
+    def get_df(self, query: str, columns=None) -> pd.DataFrame:
         """ Get pandas dataframe from query result """
         with self.connection:
-            return DataFrame(
+            return pd.DataFrame(
                 self.cursor.execute(query).fetchall(),
                 columns=columns)
 
-    def update_account_address(self, user_id: int, new_address: str):
+    def update_account_address(self, user_id: int, new_address: str) -> None:
         """ Update account address after moving to a new network or adding new address"""
         with self.connection:
             self.cursor.execute(
@@ -224,16 +229,17 @@ class SQLighter:
                     SET account_address = '{new_address}' 
                     WHERE user_id = {user_id}""").fetchall()
 
-    def rename_column(self, new_column_name: str, old_column_name: str = 'account_address', table: str = 'accounts'):
+    def rename_column(self, new_column_name: str, old_column_name: str = 'account_address',
+                      table: str = 'accounts') -> None:
         with self.connection:
             self.cursor.execute(
                 f"""ALTER TABLE {table} RENAME COLUMN {old_column_name} TO {new_column_name}""").fetchall()
 
-    def add_column(self, new_column_name: str = 'account_address', table: str = 'accounts'):
+    def add_column(self, new_column_name: str = 'account_address', table: str = 'accounts') -> None:
         with self.connection:
             self.cursor.execute(
                 f"""ALTER TABLE {table} ADD COLUMN {new_column_name} STRING NOT NULL DEFAULT ''""").fetchall()
 
-    def close(self):
+    def close(self) -> None:
         """ Close DB connection """
         self.connection.close()

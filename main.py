@@ -199,6 +199,7 @@ def endpoint_cyberlink(message):
 
 @bot.message_handler(
     func=lambda message: (((message.content_type == 'text')
+                           & (message.text is not None)
                            & (message.text.lower() not in list(
                                 set().union(TWEETER_MENU_LOWER, BASE_MENU_LOWER).difference(['tweet']))))
                           | (message.content_type in ('audio', 'contact', 'document', 'location',
@@ -336,7 +337,8 @@ def main_menu(message):
         if message.from_user.id > 1_400_000_000:
             bot.send_message(
                 message.chat.id,
-                f'Your telegram was recently registered, please use an older account',
+                f'Your telegram was recently registered, please use an older account.\n'
+                f'Telegram account must have been created over a year ago.',
                 reply_markup=base_keyboard_reply_markup(message.from_user.id))
             return
         state[message.chat.id] = States.S_SIGNUP
@@ -520,6 +522,7 @@ def sign_up_user(message):
 
 @bot.message_handler(
     func=lambda message: ((message.content_type == 'text')
+                          & (message.text is not None)
                           & (message.text.lower() in TWEETER_MENU_LOWER))
                          & (state[message.chat.id] == States.S_NEW_TWEET),
     content_types=['text'])

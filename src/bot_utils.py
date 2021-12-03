@@ -1,6 +1,7 @@
 from requests import get
 from json import dumps
 from os import mkdir
+import re
 from telebot.apihelper import ApiTelegramException, ApiException
 
 from src.lcd_utils import validators_state
@@ -99,8 +100,8 @@ def download_file_from_telegram(message, file_id):
 def message_upload_to_ipfs(message, lower_transform: bool = True):
     if message.content_type == 'text':
         # TODO add conditions for checking IPFS Hash
-        if len(message.text) == 46:
-            return message.text, None
+        if re.match('^[A-Za-z0-9]{46}$', message.text.strip()):
+            return message.text.strip(), None
         elif lower_transform and len(message.text) < 46:
             return upload_text(message.text.lower())
         return upload_text(message.text)

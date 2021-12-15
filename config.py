@@ -111,6 +111,7 @@ TWEETER_KEYBOARD = ReplyKeyboardMarkup(True, True)
 TWEETER_KEYBOARD.add(TWEETER_MENU[0], TWEETER_MENU[1])
 
 TWEET_HASH = 'QmbdH2WBamyKLPE5zu4mJ9v49qvY8BFfoumoVPMR5V4Rvx'
+AVATAR_HASH = 'Qmf89bXkJH9jw4uaLkHmZkxQ51qGKfUPtAMxA8rTwBrmTs'
 
 
 # default status class

@@ -7,7 +7,7 @@ from src.bot_utils import create_temp_directory, send_ipfs_notification, jail_ch
 from src.lcd_utils import validators_state, search_cid
 from src.bash_utils import create_cyberlink, create_account, transfer_tokens
 from config import CYBER_KEY_NAME, BASE_MENU_LOWER, MONITORING_MENU_LOWER, TWEETER_MENU_LOWER, MONITORING_KEYBOARD, \
-    TWEETER_KEYBOARD, TWEET_HASH, DEV_MODE, States, bot, db_worker, CYBERPAGE_URL, CYBERPAGE_BASE_URL, TOKEN_NAME, \
+    TWEETER_KEYBOARD, TWEET_HASH, AVATAR_HASH, DEV_MODE, States, bot, db_worker, CYBERPAGE_URL, CYBERPAGE_BASE_URL, TOKEN_NAME, \
     COMMAND_LIST, SUPPORT_ACCOUNT, logging
 
 # Create directory for temporary files
@@ -149,7 +149,7 @@ def endpoint_cyberlink(message):
                 account_name=db_worker.get_account_name(message.from_user.id),
                 from_hash=cyberlink_startpoint_ipfs_hash[message.chat.id],
                 to_hash=ipfs_hash)
-        if cyberlink_error:
+        if cyberlink_error and cyberlink_startpoint_ipfs_hash[message.chat.id] not in (TWEET_HASH, AVATAR_HASH):
             cyberlink_hash, cyberlink_error = \
                 create_cyberlink(
                     account_name=CYBER_KEY_NAME,
@@ -180,6 +180,12 @@ def endpoint_cyberlink(message):
                     f'Congratulations!\n'
                     f'You have created 10 links.',
                     reply_markup=base_keyboard_reply_markup(message.from_user.id))
+        elif cyberlink_error and cyberlink_startpoint_ipfs_hash[message.chat.id] in (TWEET_HASH, AVATAR_HASH):
+            bot.send_message(
+                message.chat.id,
+                f"You don't have personal bandwidth and "
+                f"you cannot create CyberLink from `avatar` and `tweet` CID by cyberdBot account\n",
+                reply_markup=base_keyboard_reply_markup(message.from_user.id))
         elif cyberlink_error:
             bot.send_message(
                 message.chat.id,

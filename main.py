@@ -7,8 +7,8 @@ from src.bot_utils import create_temp_directory, send_ipfs_notification, jail_ch
 from src.lcd_utils import validators_state, search_cid
 from src.bash_utils import create_cyberlink, create_account, transfer_tokens
 from config import CYBER_KEY_NAME, BASE_MENU_LOWER, MONITORING_MENU_LOWER, TWEETER_MENU_LOWER, MONITORING_KEYBOARD, \
-    TWEETER_KEYBOARD, TWEET_HASH, DEV_MODE, States, bot, db_worker, CYBERPAGE_URL, CYBERPAGE_BASE_URL, TOKEN_NAME, \
-    COMMAND_LIST, SUPPORT_ACCOUNT, logging
+    TWEETER_KEYBOARD, TWEET_HASH, AVATAR_HASH, FOLLOW_HASH, DEV_MODE, States, bot, db_worker, CYBERPAGE_URL, \
+    CYBERPAGE_BASE_URL, TOKEN_NAME, COMMAND_LIST, SUPPORT_ACCOUNT, logging
 
 # Create directory for temporary files
 create_temp_directory()
@@ -149,7 +149,8 @@ def endpoint_cyberlink(message):
                 account_name=db_worker.get_account_name(message.from_user.id),
                 from_hash=cyberlink_startpoint_ipfs_hash[message.chat.id],
                 to_hash=ipfs_hash)
-        if cyberlink_error:
+        if cyberlink_error and cyberlink_startpoint_ipfs_hash[message.chat.id] not in (TWEET_HASH, FOLLOW_HASH,
+                                                                                       AVATAR_HASH):
             cyberlink_hash, cyberlink_error = \
                 create_cyberlink(
                     account_name=CYBER_KEY_NAME,
@@ -180,6 +181,13 @@ def endpoint_cyberlink(message):
                     f'Congratulations!\n'
                     f'You have created 10 links.',
                     reply_markup=base_keyboard_reply_markup(message.from_user.id))
+        elif cyberlink_error and cyberlink_startpoint_ipfs_hash[message.chat.id] in (TWEET_HASH, AVATAR_HASH,
+                                                                                     FOLLOW_HASH):
+            bot.send_message(
+                message.chat.id,
+                f"You don't have personal bandwidth and "
+                f"you cannot create CyberLink from `avatar`, `follow` and `tweet` CID by cyberdBot account\n",
+                reply_markup=base_keyboard_reply_markup(message.from_user.id))
         elif cyberlink_error:
             bot.send_message(
                 message.chat.id,
@@ -199,7 +207,7 @@ def endpoint_cyberlink(message):
 
 @bot.message_handler(
     func=lambda message: (((message.content_type == 'text')
-                           & (message.text.lower() not in list(
+                           & (message.text is None or message.text.lower() not in list(
                                 set().union(TWEETER_MENU_LOWER, BASE_MENU_LOWER).difference(['tweet']))))
                           | (message.content_type in ('audio', 'contact', 'document', 'location',
                                                       'photo', 'video', 'video_note', 'voice')))
@@ -336,9 +344,16 @@ def main_menu(message):
         if message.from_user.id > 1_400_000_000:
             bot.send_message(
                 message.chat.id,
-                f'Your telegram was recently registered, please use an older account',
+                f'Your telegram was recently registered, please use an older account.\n'
+                f'Telegram account must have been created over a year ago.',
                 reply_markup=base_keyboard_reply_markup(message.from_user.id))
             return
+        bot.send_message(
+            message.chat.id,
+            f'All tokens have been distributed, wait for further announcements in the group',
+            reply_markup=base_keyboard_reply_markup(message.from_user.id))
+        return
+
         state[message.chat.id] = States.S_SIGNUP
         bot.send_message(
             message.chat.id,
@@ -520,7 +535,7 @@ def sign_up_user(message):
 
 @bot.message_handler(
     func=lambda message: ((message.content_type == 'text')
-                          & (message.text.lower() in TWEETER_MENU_LOWER))
+                          & (message.text is None or message.text.lower() in TWEETER_MENU_LOWER))
                          & (state[message.chat.id] == States.S_NEW_TWEET),
     content_types=['text'])
 def tweet_menu(message):

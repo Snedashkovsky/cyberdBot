@@ -159,7 +159,7 @@ def endpoint_cyberlink(message):
         if cyberlink_hash:
             bot.send_message(
                 message.chat.id,
-                f'CyberLink created in the transaction: '
+                f'cyberlink has been created in the transaction: '
                 f'<u><a href="{CYBERPAGE_URL}/tx/{cyberlink_hash}">{cyberlink_hash}</a></u> \n',
                 parse_mode='HTML',
                 reply_markup=base_keyboard_reply_markup(message.from_user.id))
@@ -186,12 +186,13 @@ def endpoint_cyberlink(message):
             bot.send_message(
                 message.chat.id,
                 f"You don't have personal bandwidth and "
-                f"you cannot create CyberLink from `avatar`, `follow` and `tweet` CID by cyberdBot account\n",
+                f"you cannot create cyberlink from `avatar`, `follow` and `tweet` CID by cyberdBot account\n"
+                f"Please get <u>A</u> and <u>V</u> coins before creating cyberlink",
                 reply_markup=base_keyboard_reply_markup(message.from_user.id))
         elif cyberlink_error:
             bot.send_message(
                 message.chat.id,
-                f'CyberLink not created\n'
+                f'CyberLink has not been created\n'
                 f'error: {cyberlink_error}',
                 reply_markup=base_keyboard_reply_markup(message.from_user.id))
     state[message.chat.id] = States.S_STARTPOINT_CYBERLINK
@@ -223,8 +224,14 @@ def add_tweet(message):
             parse_mode="HTML",
             reply_markup=TWEETER_KEYBOARD)
         logging.info(
-            f"cyberLink for tweet was not created, from {cyberlink_startpoint_ipfs_hash[message.chat.id]}, "
+            f"cyberLink for tweet has not been created, from {cyberlink_startpoint_ipfs_hash[message.chat.id]}, "
             f"to {ipfs_hash}. Self cyberlink")
+    elif db_worker.get_account_name(message.from_user.id) == '':
+        bot.send_message(
+            message.chat.id,
+            f'You have not signed up, please sign up and get <u>A</u> and <u>V</u> coins before tweeting',
+            parse_mode="HTML",
+            reply_markup=TWEETER_KEYBOARD)
     elif ipfs_hash:
         cyberlink_hash, cyberlink_error = \
             create_cyberlink(
@@ -235,7 +242,7 @@ def add_tweet(message):
             bot.send_message(
                 message.chat.id,
                 f'Tweet not created\n'
-                f'You have not enough personal bandwidth',
+                f'You have not enough personal bandwidth, please get <u>A</u> and <u>V</u> coins before tweeting',
                 reply_markup=TWEETER_KEYBOARD)
             return
         elif cyberlink_hash:
@@ -287,8 +294,10 @@ def send_message_when_start_state(message):
 )
 def main_menu(message):
     state[message.chat.id] = States.S_START
+
     if message.text.lower() in ['jail check', '/check']:
         jail_check(message.chat.id)
+
     elif message.text.lower() in ['validator list', '/validators']:
         validators_dict, _ = validators_state()
         bot.send_message(
@@ -296,12 +305,14 @@ def main_menu(message):
             '{}'.format(dict_to_md_list(validators_dict)),
             parse_mode="HTML",
             reply_markup=base_keyboard_reply_markup(message.from_user.id))
+
     elif message.text.lower() == 'jail check settings':
         state[message.chat.id] = States.S_MONITORING
         bot.send_message(
             message.chat.id,
             'Enter a validator moniker',
             reply_markup=MONITORING_KEYBOARD)
+
     elif message.text.lower() in ['search', '/search']:
         state[message.chat.id] = States.S_SEARCH
         bot.send_message(
@@ -310,12 +321,14 @@ def main_menu(message):
             'IPFS hash, URL, contact, location, video or voice',
             parse_mode="HTML",
             reply_markup=base_keyboard_reply_markup(message.from_user.id))
+
     elif message.text.lower() in ['upload to ipfs', '/ipfs']:
         state[message.chat.id] = States.S_UPLOAD_IPFS
         bot.send_message(
             message.chat.id,
             'Please send text, file, photo, video, audio, IPFS hash, URL, contact, location, video or voice',
             reply_markup=base_keyboard_reply_markup(message.from_user.id))
+
     elif message.text.lower() in ['create cyberlink', '/cyberlink']:
         if db_worker.check_sign_user(message.from_user.id):
             state[message.chat.id] = States.S_STARTPOINT_CYBERLINK
@@ -334,6 +347,7 @@ def main_menu(message):
                 message.chat.id,
                 'Please create an account before creating cyberLinks',
                 reply_markup=base_keyboard_reply_markup(message.from_user.id))
+
     elif message.text.lower() == 'sign up':
         if db_worker.check_sign_user(message.from_user.id):
             bot.send_message(
@@ -341,19 +355,6 @@ def main_menu(message):
                 f'You already created account',
                 reply_markup=base_keyboard_reply_markup(message.from_user.id))
             return
-        if message.from_user.id > 1_400_000_000:
-            bot.send_message(
-                message.chat.id,
-                f'Your telegram was recently registered, please use an older account.\n'
-                f'Telegram account must have been created over a year ago.',
-                reply_markup=base_keyboard_reply_markup(message.from_user.id))
-            return
-        bot.send_message(
-            message.chat.id,
-            f'All tokens have been distributed, wait for further announcements in the group',
-            reply_markup=base_keyboard_reply_markup(message.from_user.id))
-        return
-
         state[message.chat.id] = States.S_SIGNUP
         bot.send_message(
             message.chat.id,
@@ -367,6 +368,7 @@ def main_menu(message):
             message.chat.id,
             'Choose a name for your cyber account. Remember that the name will be case sensitive',
             reply_markup=base_keyboard_reply_markup(message.from_user.id))
+
     elif message.text.lower() in ['tweet', '/tweet']:
         if not db_worker.check_sign_user(message.from_user.id):
             bot.send_message(
@@ -380,6 +382,7 @@ def main_menu(message):
             'Please send new tweet as text, file, photo, video, audio, IPFS hash, URL, contact, location, '
             'video or voice',
             reply_markup=TWEETER_KEYBOARD)
+
     elif message.text.lower() in ['/issue']:
         bot.send_message(
             message.chat.id,
@@ -499,7 +502,7 @@ def sign_up_user(message):
         try:
             db_worker.signup_user(message.from_user.id, account_data["name"], account_data["address"])
         except Exception as e:
-            logging.error(e)
+            logging.error(f'Error in adding new user to DB: {e}')
         bot.send_message(
             message.chat.id,
             f'Account: <b>{account_data["name"]}</b>\n'
@@ -511,20 +514,6 @@ def sign_up_user(message):
             f'There is no way of recovering any funds if you lose it.',
             parse_mode="HTML",
             reply_markup=base_keyboard_reply_markup(message.from_user.id))
-        transfer_state, transfer_error = transfer_tokens(
-            account_address=account_data["address"],
-            value=10_000_000)
-        if transfer_state:
-            bot.send_message(
-                message.chat.id,
-                f'I have transferred 10,000,000 {TOKEN_NAME} to you account.\n'
-                f'You can create cyberlinks now!',
-                reply_markup=base_keyboard_reply_markup(message.from_user.id))
-        else:
-            bot.send_message(
-                message.chat.id,
-                f'Tokens was not transferred.\nError: {transfer_error}',
-                reply_markup=base_keyboard_reply_markup(message.from_user.id))
     else:
         bot.send_message(
             message.chat.id,
@@ -568,6 +557,6 @@ if __name__ == '__main__':
                     none_stop=True,
                     timeout=100)
             except Exception as e:
-                logging.error(e)
+                logging.error(f'Error in the main: {e}. Restart in 15 sec')
                 # restart in 15 sec
                 time.sleep(15)

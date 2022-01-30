@@ -192,8 +192,7 @@ def endpoint_cyberlink(message):
         elif cyberlink_error:
             bot.send_message(
                 message.chat.id,
-                f'CyberLink has not been created\n'
-                f'error: {cyberlink_error}',
+                f'CyberLink has not been created',
                 reply_markup=base_keyboard_reply_markup(message.from_user.id))
     state[message.chat.id] = States.S_STARTPOINT_CYBERLINK
     bot.send_message(
@@ -241,7 +240,7 @@ def add_tweet(message):
         if cyberlink_error == 'not enough personal bandwidth':
             bot.send_message(
                 message.chat.id,
-                f'Tweet not created\n'
+                f'Tweet has not been created\n'
                 f'You have not enough personal bandwidth, please get <u>A</u> and <u>V</u> coins before tweeting',
                 reply_markup=TWEETER_KEYBOARD)
             return
@@ -267,8 +266,7 @@ def add_tweet(message):
         elif cyberlink_error:
             bot.send_message(
                 message.chat.id,
-                f'Tweet not created\n'
-                f'error: {cyberlink_error}',
+                f'Tweet has not been created\n',
                 reply_markup=TWEETER_KEYBOARD)
     bot.send_message(
         message.chat.id,
@@ -509,7 +507,7 @@ def sign_up_user(message):
             f'Address: <u><a href="{CYBERPAGE_URL}/contract/{account_data["address"]}">{account_data["address"]}</a>'
             f'</u>\n'
             f'Mnemonic phrase: <u>{account_data["mnemonic_phrase"]}</u>\n'
-            f'**Important**Please write down your mnemonic phrase and keep it safe. '
+            f'**Important** Please write down your mnemonic phrase and keep it safe. '
             f'The mnemonic is the only way to recover your account. '
             f'There is no way of recovering any funds if you lose it.',
             parse_mode="HTML",

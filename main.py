@@ -515,8 +515,7 @@ def sign_up_user(message):
     else:
         bot.send_message(
             message.chat.id,
-            f'Account not created\n'
-            f'error: {create_account_error}',
+            f'Account not created',
             reply_markup=base_keyboard_reply_markup(message.from_user.id))
 
 

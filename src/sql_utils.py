@@ -1,6 +1,7 @@
 import sqlite3
 from time import sleep
 import pandas as pd
+from config import logging
 
 
 class SQLighter:
@@ -186,8 +187,13 @@ class SQLighter:
     def get_account_name(self, user_id: int) -> str:
         """ Get account address for user id """
         with self.connection:
-            return self.cursor.execute(
-                f"SELECT account_name FROM accounts WHERE user_id={user_id}").fetchall()[0][0]
+            try:
+                return self.cursor.execute(
+                    f"SELECT account_name FROM accounts WHERE user_id={user_id}").fetchall()[0][0]
+            except IndexError:
+                logging.info(
+                    f"Unsigned user, user_id  {user_id}.")
+                return ""
 
     def get_account_address(self, user_id: int) -> str:
         """ Get account address for user id """

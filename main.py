@@ -84,8 +84,10 @@ def search(message, number_of_search_results: int = 5):
         search_list, search_error = search_cid(ipfs_hash)
         if search_list:
             search_list = search_list[:min(len(search_list), number_of_search_results)]
-            message_text = f'Top {number_of_search_results} search results:\n' + ''.join(
-                f'<u><a href="https://ipfs.io/ipfs/{item["cid"]}">{item["cid"]}</a></u>\n' for item in search_list) + \
+            message_text = \
+                f'Top {number_of_search_results} search results:\n' + ''.join(
+                    f'<u><a href="https://ipfs.io/ipfs/{item["particle"]}">{item["particle"]}</a></u>\n'
+                    for item in search_list) + \
                 f'\nother results on the <u><a href="{CYBERPAGE_BASE_URL}/search/{ipfs_hash}">cyb.ai</a></u>'
         elif search_error == 'CID not found':
             message_text = 'The content identifier not found in the cyber graph'

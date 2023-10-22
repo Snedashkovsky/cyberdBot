@@ -1,7 +1,8 @@
 import time
+from argparse import ArgumentParser
 
 from src.bot_utils import jail_check
-from config import SCHEDULER_TIME, DEV_MODE, db_worker, logging
+from config import SCHEDULER_TIME, db_worker, logging
 
 
 # Create tables
@@ -19,8 +20,12 @@ def check_send_messages():
 
 if __name__ == '__main__':
 
-    if DEV_MODE:
-        print('DEV_MODE')
+    parser = ArgumentParser()
+    parser.add_argument("--dev_mode", action='store_true')
+    args = parser.parse_args()
+
+    if args.dev_mode:
+        print('DEV MODE')
         check_send_messages()
     else:
         # Handler to avoid disconnection

@@ -1,4 +1,3 @@
-import os
 from enum import Enum
 from telebot.types import ReplyKeyboardMarkup
 from telebot import TeleBot
@@ -32,24 +31,11 @@ ACCOUNT_CREATION_QUERY = dotenv_values('.env')['ACCOUNT_CREATION_QUERY']
 # Shell query for transfer main tokens to new account
 TRANSFER_QUERY = dotenv_values('.env')['TRANSFER_QUERY']
 
-# Shell query for delegate main tokens to validator
-DELEGATE_QUERY = dotenv_values('.env')['DELEGATE_QUERY']
-VALIDATOR_ADDRESS = dotenv_values('.env')['VALIDATOR_ADDRESS']
-
-# Shell query for investmint stake tokens for amper or volt
-INVESTMINT_QUERY = dotenv_values('.env')['INVESTMINT_QUERY']
-
-# Shell query for unjail validator
-UNJAIL_VALIDATOR_QUERY = dotenv_values('.env')['UNJAIL_VALIDATOR_QUERY']
-
 # Shell query for IPFS node restart
 IPFS_RESTART_QUERY = dotenv_values('.env')['IPFS_RESTART_QUERY']
 
 # IPFS HOST
 IPFS_HOST = dotenv_values('.env')['IPFS_HOST']
-
-# Development mode for easy bot stop (set in start_bot.sh)
-DEV_MODE = int(os.getenv('DEV_MODE', 0))
 
 # SQLite file name and DB worker
 DB_FILE = 'db_sqlite.vdb'

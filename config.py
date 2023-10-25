@@ -1,9 +1,9 @@
-import os
 from enum import Enum
 from telebot.types import ReplyKeyboardMarkup
 from telebot import TeleBot
 from dotenv import dotenv_values
 import logging
+from sys import stdout
 
 from src.sql_utils import SQLighter
 
@@ -14,7 +14,16 @@ bot = TeleBot(TELEBOT_TOKEN)
 SUPPORT_ACCOUNT = dotenv_values('.env')['SUPPORT_ACCOUNT']
 
 # Set logging format
-logging.basicConfig(filename='cyberdbot.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+LOG_FILE = 'cyberdbot.log'
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(module)s - %(message)s',
+    datefmt='%d-%m-%Y %H:%M:%S',
+    handlers=[
+        logging.FileHandler(LOG_FILE),
+        logging.StreamHandler(stdout)
+    ]
+)
 
 # cyberdBot key name in the cyber
 CYBER_KEY_NAME = dotenv_values('.env')['CYBER_KEY_NAME']
@@ -32,24 +41,11 @@ ACCOUNT_CREATION_QUERY = dotenv_values('.env')['ACCOUNT_CREATION_QUERY']
 # Shell query for transfer main tokens to new account
 TRANSFER_QUERY = dotenv_values('.env')['TRANSFER_QUERY']
 
-# Shell query for delegate main tokens to validator
-DELEGATE_QUERY = dotenv_values('.env')['DELEGATE_QUERY']
-VALIDATOR_ADDRESS = dotenv_values('.env')['VALIDATOR_ADDRESS']
-
-# Shell query for investmint stake tokens for amper or volt
-INVESTMINT_QUERY = dotenv_values('.env')['INVESTMINT_QUERY']
-
-# Shell query for unjail validator
-UNJAIL_VALIDATOR_QUERY = dotenv_values('.env')['UNJAIL_VALIDATOR_QUERY']
-
 # Shell query for IPFS node restart
 IPFS_RESTART_QUERY = dotenv_values('.env')['IPFS_RESTART_QUERY']
 
 # IPFS HOST
 IPFS_HOST = dotenv_values('.env')['IPFS_HOST']
-
-# Development mode for easy bot stop (set in start_bot.sh)
-DEV_MODE = int(os.getenv('DEV_MODE', 0))
 
 # SQLite file name and DB worker
 DB_FILE = 'db_sqlite.vdb'

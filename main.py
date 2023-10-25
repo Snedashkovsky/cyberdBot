@@ -1,14 +1,17 @@
 from collections import defaultdict
-import time
 import re
+from argparse import ArgumentParser
+
+from cyberutils.bash import display_sleep
 
 from src.bot_utils import create_temp_directory, send_ipfs_notification, jail_check, dict_to_md_list, \
     message_upload_to_ipfs, base_keyboard_reply_markup
 from src.lcd_utils import validators_state, search_cid
-from src.bash_utils import create_cyberlink, create_account, transfer_tokens
+from src.bash_utils import create_cyberlink, create_account
 from config import CYBER_KEY_NAME, BASE_MENU_LOWER, MONITORING_MENU_LOWER, TWEETER_MENU_LOWER, MONITORING_KEYBOARD, \
-    TWEETER_KEYBOARD, TWEET_HASH, AVATAR_HASH, FOLLOW_HASH, DEV_MODE, States, bot, db_worker, CYBERPAGE_URL, \
-    CYBERPAGE_BASE_URL, TOKEN_NAME, COMMAND_LIST, SUPPORT_ACCOUNT, logging
+    TWEETER_KEYBOARD, TWEET_HASH, AVATAR_HASH, FOLLOW_HASH, States, bot, db_worker, CYBERPAGE_URL, \
+    CYBERPAGE_BASE_URL, COMMAND_LIST, SUPPORT_ACCOUNT, logging
+
 
 # Create directory for temporary files
 create_temp_directory()
@@ -86,9 +89,9 @@ def search(message, number_of_search_results: int = 5):
             search_list = search_list[:min(len(search_list), number_of_search_results)]
             message_text = \
                 f'Top {number_of_search_results} search results:\n' + ''.join(
-                    f'<u><a href="https://ipfs.io/ipfs/{item["particle"]}">{item["particle"]}</a></u>\n'
+                    f'<u><a href="{CYBERPAGE_BASE_URL}/oracle/ask/{item["particle"]}">{item["particle"]}</a></u>\n'
                     for item in search_list) + \
-                f'\nother results on the <u><a href="{CYBERPAGE_BASE_URL}/search/{ipfs_hash}">cyb.ai</a></u>'
+                f'\nother results on the <u><a href="{CYBERPAGE_BASE_URL}/oracle/ask/{ipfs_hash}">cyb.ai</a></u>'
         elif search_error == 'CID not found':
             message_text = 'The content identifier not found in the cyber graph'
         else:
@@ -167,9 +170,9 @@ def endpoint_cyberlink(message):
                 reply_markup=base_keyboard_reply_markup(message.from_user.id))
             bot.send_message(
                 message.chat.id,
-                f'from: <u><a href="https://ipfs.io/ipfs/{cyberlink_startpoint_ipfs_hash[message.chat.id]}">'
+                f'from: <u><a href="{CYBERPAGE_BASE_URL}/oracle/ask/{cyberlink_startpoint_ipfs_hash[message.chat.id]}">'
                 f'{cyberlink_startpoint_ipfs_hash[message.chat.id]}</a></u>\n'
-                f'to: <u><a href="https://ipfs.io/ipfs/{ipfs_hash}">{ipfs_hash}</a></u>',
+                f'to: <u><a href="{CYBERPAGE_BASE_URL}/oracle/ask/{ipfs_hash}">{ipfs_hash}</a></u>',
                 parse_mode='HTML',
                 reply_markup=base_keyboard_reply_markup(message.from_user.id))
             db_worker.write_cyberlink(
@@ -543,8 +546,12 @@ def tweet_menu(message):
 
 if __name__ == '__main__':
 
-    if DEV_MODE:
-        print('DEV_MODE')
+    parser = ArgumentParser()
+    parser.add_argument("--dev_mode", action='store_true')
+    args = parser.parse_args()
+
+    if args.dev_mode:
+        print('DEV MODE')
         bot.polling(
             none_stop=True,
             timeout=100)
@@ -555,7 +562,11 @@ if __name__ == '__main__':
                 bot.polling(
                     none_stop=True,
                     timeout=100)
+                display_sleep(30)
+            except KeyboardInterrupt:
+                logging.info('Stopped by Owner')
+                break
             except Exception as e:
-                logging.error(f'Error in the main: {e}. Restart in 15 sec')
-                # restart in 15 sec
-                time.sleep(15)
+                logging.error(f'Error: {e}. Restart in 30 sec')
+                display_sleep(30)
+

@@ -87,9 +87,9 @@ def search(message, number_of_search_results: int = 5):
             search_list = search_list[:min(len(search_list), number_of_search_results)]
             message_text = \
                 f'Top {number_of_search_results} search results:\n' + ''.join(
-                    f'<u><a href="https://ipfs.io/ipfs/{item["particle"]}">{item["particle"]}</a></u>\n'
+                    f'<u><a href="{CYBERPAGE_BASE_URL}/oracle/ask/{item["particle"]}">{item["particle"]}</a></u>\n'
                     for item in search_list) + \
-                f'\nother results on the <u><a href="{CYBERPAGE_BASE_URL}/search/{ipfs_hash}">cyb.ai</a></u>'
+                f'\nother results on the <u><a href="{CYBERPAGE_BASE_URL}/oracle/ask/{ipfs_hash}">cyb.ai</a></u>'
         elif search_error == 'CID not found':
             message_text = 'The content identifier not found in the cyber graph'
         else:
@@ -168,9 +168,9 @@ def endpoint_cyberlink(message):
                 reply_markup=base_keyboard_reply_markup(message.from_user.id))
             bot.send_message(
                 message.chat.id,
-                f'from: <u><a href="https://ipfs.io/ipfs/{cyberlink_startpoint_ipfs_hash[message.chat.id]}">'
+                f'from: <u><a href="{CYBERPAGE_BASE_URL}/oracle/ask/{cyberlink_startpoint_ipfs_hash[message.chat.id]}">'
                 f'{cyberlink_startpoint_ipfs_hash[message.chat.id]}</a></u>\n'
-                f'to: <u><a href="https://ipfs.io/ipfs/{ipfs_hash}">{ipfs_hash}</a></u>',
+                f'to: <u><a href="{CYBERPAGE_BASE_URL}/oracle/ask/{ipfs_hash}">{ipfs_hash}</a></u>',
                 parse_mode='HTML',
                 reply_markup=base_keyboard_reply_markup(message.from_user.id))
             db_worker.write_cyberlink(

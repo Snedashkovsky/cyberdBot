@@ -19,7 +19,7 @@ MILLIVOLT_TOKEN_NAME = 'MILLIVOLT'
 TOCYB_TOKEN_NAME = 'TOCYB'
 TOTAL_GOL_GIFT = 1_178_234_463
 NEW_USER_MESSAGE = ''
-GENESIS_PATH = 'data/genesis_bostrom.json'
+GENESIS_PATH = '../data/genesis_bostrom.json'
 
 
 def message_genesis(bostrom_address: str, genesis_balance: int) -> str:

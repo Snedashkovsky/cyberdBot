@@ -1,5 +1,6 @@
-import time
 from argparse import ArgumentParser
+
+from cyberutils.bash import display_sleep
 
 from src.bot_utils import jail_check
 from config import SCHEDULER_TIME, db_worker, logging
@@ -15,7 +16,7 @@ def check_send_messages():
         for chat_id in chat_id_list:
             jail_check(chat_id,  pressed_button=False)
         logging.info(f'Validators status sent for {len(chat_id_list)} users')
-        time.sleep(SCHEDULER_TIME)
+        display_sleep(SCHEDULER_TIME)
 
 
 if __name__ == '__main__':
@@ -32,6 +33,10 @@ if __name__ == '__main__':
         while True:
             try:
                 check_send_messages()
+                display_sleep(30)
+            except KeyboardInterrupt:
+                logging.info(f'Stopped by Owner')
+                break
             except Exception as e:
-                logging.error(f'Error {e}. It will be restarting in 15 sec')
-                time.sleep(15)
+                logging.error(f'Error: {e}. Restart in 30 sec')
+                display_sleep(30)

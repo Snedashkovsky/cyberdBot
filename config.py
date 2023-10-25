@@ -3,6 +3,7 @@ from telebot.types import ReplyKeyboardMarkup
 from telebot import TeleBot
 from dotenv import dotenv_values
 import logging
+from sys import stdout
 
 from src.sql_utils import SQLighter
 
@@ -13,7 +14,16 @@ bot = TeleBot(TELEBOT_TOKEN)
 SUPPORT_ACCOUNT = dotenv_values('.env')['SUPPORT_ACCOUNT']
 
 # Set logging format
-logging.basicConfig(filename='cyberdbot.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+LOG_FILE = 'cyberdbot.log'
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(module)s - %(message)s',
+    datefmt='%d-%m-%Y %H:%M:%S',
+    handlers=[
+        logging.FileHandler(LOG_FILE),
+        logging.StreamHandler(stdout)
+    ]
+)
 
 # cyberdBot key name in the cyber
 CYBER_KEY_NAME = dotenv_values('.env')['CYBER_KEY_NAME']

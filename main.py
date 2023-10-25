@@ -1,7 +1,8 @@
 from collections import defaultdict
-import time
 import re
 from argparse import ArgumentParser
+
+from cyberutils.bash import display_sleep
 
 from src.bot_utils import create_temp_directory, send_ipfs_notification, jail_check, dict_to_md_list, \
     message_upload_to_ipfs, base_keyboard_reply_markup
@@ -10,6 +11,7 @@ from src.bash_utils import create_cyberlink, create_account
 from config import CYBER_KEY_NAME, BASE_MENU_LOWER, MONITORING_MENU_LOWER, TWEETER_MENU_LOWER, MONITORING_KEYBOARD, \
     TWEETER_KEYBOARD, TWEET_HASH, AVATAR_HASH, FOLLOW_HASH, States, bot, db_worker, CYBERPAGE_URL, \
     CYBERPAGE_BASE_URL, COMMAND_LIST, SUPPORT_ACCOUNT, logging
+
 
 # Create directory for temporary files
 create_temp_directory()
@@ -560,7 +562,11 @@ if __name__ == '__main__':
                 bot.polling(
                     none_stop=True,
                     timeout=100)
+                display_sleep(30)
+            except KeyboardInterrupt:
+                logging.info('Stopped by Owner')
+                break
             except Exception as e:
-                logging.error(f'Error in the main: {e}. Restart in 15 sec')
-                # restart in 15 sec
-                time.sleep(15)
+                logging.error(f'Error: {e}. Restart in 30 sec')
+                display_sleep(30)
+

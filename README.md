@@ -1,30 +1,36 @@
 # cyberdBot [t.me/cyberdbot](https://t.me/cyberdbot)  
 Telegram bot for creation cyberLinks on the cyberd knoledge graph, upload content to IPFS and monitoring [cyberd](https://github.com/cybercongress/cyberd/) node status data
 ## Install
-Install [IPFS node](https://docs-beta.ipfs.io/install/command-line-quick-start/)  
-Install [cyberd node](https://cybercongress.ai/docs/cyberd/run_validator/)  
-Clone repository:
+- Install [IPFS node](https://docs-beta.ipfs.io/install/command-line-quick-start/)  
+- Install [cyberd node](https://cybercongress.ai/docs/cyberd/run_validator/)  
+- Clone repository:
 ```bash 
 git clone https://github.com/Snedashkovsky/cyberdBot
 ```
-Install requirements 
+- Install requirements 
 ```bash
-pip3 install --user -r cyberdBot/requirements.txt
+make install_venv
 sudo apt-get install expect
 ```
-Add your Telegram Bot Token, cyberd key name and cyberd passphrase into `start_bot.sh`
+- Add your Telegram Bot Token, cyberd key name and cyberd passphrase into `.env`
 ## Run
+### Main Bot
 ```bash  
-./start_bot.sh  m|main|s|scheduler  [d|dev]
-
-Using:
-   m|main - Main Bot
-   s|scheduler - Monitoring Scheduler
-   [d|dev] - Development Mode
+# Development Mode
+make start_dev_mode_main
+# Production mode
+make start_main
+```
+### Monitoring Scheduler
+```bash
+# Development Mode
+make start_dev_mode_scheduler
+# Production mode
+make start_scheduler
 ```
 ## Test
 ```
-python3 -m pytest -s -v *.py src/*.py
+make test
 ```
 
 ## Commands
@@ -40,7 +46,7 @@ issue - Create issue or send feedback
 ```
 
 ## Requirements
-Python 3.6 or higher
+Python 3.9 or higher
 
 ## Data for the Bostrom Genesis 
 [Bot user addresses with the number of created cyberlinks](https://ipfs.io/ipfs/QmWLoxH5F1tFvoiMEq8JEGjHsrT7JSkRxzhUGV1Lrn1GWk) as of 10/08/2021.

@@ -6,7 +6,8 @@ from telebot.apihelper import ApiTelegramException, ApiException
 
 from src.lcd_utils import validators_state
 from src.ipfs_utils import upload_text, upload_file
-from config import BASE_KEYBOARD, BASE_AFTER_SIGN_UP_KEYBOARD, TELEBOT_TOKEN, db_worker, bot, logging
+from config import BASE_KEYBOARD, BASE_AFTER_SIGN_UP_KEYBOARD, TELEBOT_TOKEN, CYBERPAGE_BASE_URL, db_worker, bot, \
+    logging
 
 
 def base_keyboard_reply_markup(user_id: int):
@@ -128,7 +129,7 @@ def send_ipfs_notification(message, ipfs_hash: str, error: str, message_text: st
         bot.send_message(
             message.chat.id,
             f'{str(message.content_type).capitalize()} successfully uploaded\n'
-            f'IPFS Hash: <u><a href="https://ipfs.io/ipfs/{ipfs_hash}">{ipfs_hash}</a></u>',
+            f'IPFS Hash: <u><a href="{CYBERPAGE_BASE_URL}/oracle/ask/{ipfs_hash}">{ipfs_hash}</a></u>',
             parse_mode='HTML',
             reply_markup=base_keyboard_reply_markup(message.from_user.id))
         if message_text:

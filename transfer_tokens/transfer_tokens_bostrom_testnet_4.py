@@ -147,7 +147,7 @@ def compute_users_and_links(load_new_data: bool = LOAD_NEW_DATA):
     if load_new_data:
         _users_and_links_df = get_users_and_links()
 
-        with open("data/genesis_bostrom_testnet_4.json") as _jsonFile:
+        with open("../data/genesis_bostrom_testnet_4.json") as _jsonFile:
             _genesis_json = json.load(_jsonFile)
             _jsonFile.close()
 

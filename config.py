@@ -1,9 +1,9 @@
-import os
 from enum import Enum
 from telebot.types import ReplyKeyboardMarkup
 from telebot import TeleBot
 from dotenv import dotenv_values
 import logging
+from sys import stdout
 
 from src.sql_utils import SQLighter
 
@@ -14,7 +14,16 @@ bot = TeleBot(TELEBOT_TOKEN)
 SUPPORT_ACCOUNT = dotenv_values('.env')['SUPPORT_ACCOUNT']
 
 # Set logging format
-logging.basicConfig(filename='cyberdbot.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+LOG_FILE = 'cyberdbot.log'
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(module)s - %(message)s',
+    datefmt='%d-%m-%Y %H:%M:%S',
+    handlers=[
+        logging.FileHandler(LOG_FILE),
+        logging.StreamHandler(stdout)
+    ]
+)
 
 # cyberdBot key name in the cyber
 CYBER_KEY_NAME = dotenv_values('.env')['CYBER_KEY_NAME']
@@ -32,24 +41,11 @@ ACCOUNT_CREATION_QUERY = dotenv_values('.env')['ACCOUNT_CREATION_QUERY']
 # Shell query for transfer main tokens to new account
 TRANSFER_QUERY = dotenv_values('.env')['TRANSFER_QUERY']
 
-# Shell query for delegate main tokens to validator
-DELEGATE_QUERY = dotenv_values('.env')['DELEGATE_QUERY']
-VALIDATOR_ADDRESS = dotenv_values('.env')['VALIDATOR_ADDRESS']
-
-# Shell query for investmint stake tokens for amper or volt
-INVESTMINT_QUERY = dotenv_values('.env')['INVESTMINT_QUERY']
-
-# Shell query for unjail validator
-UNJAIL_VALIDATOR_QUERY = dotenv_values('.env')['UNJAIL_VALIDATOR_QUERY']
-
 # Shell query for IPFS node restart
 IPFS_RESTART_QUERY = dotenv_values('.env')['IPFS_RESTART_QUERY']
 
 # IPFS HOST
 IPFS_HOST = dotenv_values('.env')['IPFS_HOST']
-
-# Development mode for easy bot stop (set in start_bot.sh)
-DEV_MODE = int(os.getenv('DEV_MODE', 0))
 
 # SQLite file name and DB worker
 DB_FILE = 'db_sqlite.vdb'
@@ -74,23 +70,23 @@ SCHEDULER_TIME = 60 * 60
 TOKEN_NAME = 'BOOT'
 
 # List of commands
-COMMAND_LIST = ['search', 'cyberlink', 'ipfs', 'tweet', 'check', 'validators', 'issue']
+COMMAND_LIST = ['search', 'cyberlink', 'ipfs', 'check', 'validators', 'issue']
 
 # Base Menu
-BASE_MENU = ['Search', 'Create cyberLink', 'Upload to IPFS', 'Sign up',
+BASE_MENU = ['Search a content in Bostrom', 'Create cyberLink', 'Upload to IPFS',
              'Jail check', 'Validator list', 'Jail check settings']
 BASE_KEYBOARD = ReplyKeyboardMarkup(True, True)
 BASE_KEYBOARD.add(BASE_MENU[0])
-BASE_KEYBOARD.add(BASE_MENU[1], BASE_MENU[2], BASE_MENU[3])
-BASE_KEYBOARD.add(BASE_MENU[4], BASE_MENU[5], BASE_MENU[6])
+BASE_KEYBOARD.add(BASE_MENU[2])
+BASE_KEYBOARD.add(BASE_MENU[3], BASE_MENU[4], BASE_MENU[5])
 
 # BASE Menu after Sign up
-BASE_AFTER_SIGN_UP_MENU = ['Search', 'Create cyberLink', 'Upload to IPFS', 'Tweet',
+BASE_AFTER_SIGN_UP_MENU = ['Search a content in Bostrom', 'Create cyberLink', 'Upload to IPFS',
                            'Jail check', 'Validator list', 'Jail check settings']
 BASE_AFTER_SIGN_UP_KEYBOARD = ReplyKeyboardMarkup(True, True)
 BASE_AFTER_SIGN_UP_KEYBOARD.add(BASE_AFTER_SIGN_UP_MENU[0])
-BASE_AFTER_SIGN_UP_KEYBOARD.add(BASE_AFTER_SIGN_UP_MENU[1], BASE_AFTER_SIGN_UP_MENU[2], BASE_AFTER_SIGN_UP_MENU[3])
-BASE_AFTER_SIGN_UP_KEYBOARD.add(BASE_AFTER_SIGN_UP_MENU[4], BASE_AFTER_SIGN_UP_MENU[5], BASE_AFTER_SIGN_UP_MENU[6])
+BASE_AFTER_SIGN_UP_KEYBOARD.add(BASE_AFTER_SIGN_UP_MENU[2])
+BASE_AFTER_SIGN_UP_KEYBOARD.add(BASE_AFTER_SIGN_UP_MENU[3], BASE_AFTER_SIGN_UP_MENU[4], BASE_AFTER_SIGN_UP_MENU[5])
 
 BASE_MENU_LOWER = set(map(str.lower, BASE_MENU + BASE_AFTER_SIGN_UP_MENU + ['/' + item for item in COMMAND_LIST]))
 
@@ -121,7 +117,7 @@ class States(Enum):
     S_SEARCH = 1  # Search a content
     S_UPLOAD_IPFS = 2  # Upload a content to IPFS
     S_STARTPOINT_CYBERLINK = 3  # Set a starting point of cyberlink
-    S_ENDPOINT_CYBERLINK = 4  # Set a endpoint of cyberlink
+    S_ENDPOINT_CYBERLINK = 4  # Set an endpoint of cyberlink
     S_MONITORING = 5  # Jail checker
     S_SIGNUP = 6  # Sign up a new cyberd account
     S_NEW_TWEET = 7  # Upload a New Tweet

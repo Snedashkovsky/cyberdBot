@@ -168,7 +168,7 @@ def get_users_and_links() -> pd.DataFrame:
 def compute_users_and_links(load_new_data: bool = LOAD_NEW_DATA) -> pd.DataFrame:
     if load_new_data:
         _users_and_links_df = get_users_and_links()
-        with open("data/genesis_bostrom_testnet_5.json") as _jsonFile:
+        with open("../data/genesis_bostrom_testnet_5.json") as _jsonFile:
             _genesis_json = json.load(_jsonFile)
             _jsonFile.close()
 

@@ -1,26 +1,9 @@
-from subprocess import Popen, PIPE
 import re
 
+from cyberutils.bash import execute_bash
+
 from config import CYBERLINK_CREATION_QUERY, ACCOUNT_CREATION_QUERY, TRANSFER_QUERY, IPFS_RESTART_QUERY, \
-    UNJAIL_VALIDATOR_QUERY, DELEGATE_QUERY, INVESTMINT_QUERY, VALIDATOR_ADDRESS, TOKEN_NAME, logging
-
-
-def execute_bash(bash_command: str):
-    if len(bash_command.split('"')) == 1:
-        _bash_command_list = bash_command.split()
-    elif len(bash_command.split('"')) == 2:
-        _bash_command_list = \
-            bash_command.split('"')[0].split() + \
-            [bash_command.split('"')[1]]
-    elif len(bash_command.split('"')) > 2:
-        _bash_command_list = \
-            bash_command.split('"')[0].split() + \
-            [bash_command.split('"')[1]] + \
-            [item for items in bash_command.split('"')[2:] for item in items.split()]
-    else:
-        return None, f'Cannot split bash command {bash_command}'
-    popen_process = Popen(_bash_command_list, stdout=PIPE)
-    return popen_process.communicate(timeout=15)
+    TOKEN_NAME, logging
 
 
 def extract_from_console(console_output: bytes, keys: list) -> list:
@@ -120,63 +103,6 @@ def transfer_tokens(account_address: str, value: int, token_name: str = TOKEN_NA
     except Exception as error_transfer_tokens:
         logging.error(
             f"Tokens was not transferred to {account_address} value {value}{token_name}. Error {error_transfer_tokens}")
-        return None, error_transfer_tokens
-
-
-def delegate_tokens(account_address: str, value: int, validator: str = VALIDATOR_ADDRESS, query: str = DELEGATE_QUERY):
-    try:
-        _output, error_execute_bash = \
-            execute_bash(f'{query} {account_address} {str(value) + TOKEN_NAME.lower()} {validator}')
-        if len(extract_from_console(_output, ['txhash'])[0][1]) > 0 \
-                or len(extract_from_console(_output, ['txhash'])[0][1]) > 0:
-            logging.info(
-                f"Tokens was delegated from {account_address} value {value}{TOKEN_NAME} "
-                f"txhash {extract_from_console(_output, ['txhash'])[0][1]}")
-            return True, None
-        logging.error(
-            f"Tokens was not delegated from {account_address} value {value}{TOKEN_NAME}. Error {error_execute_bash}")
-        return None, error_execute_bash
-    except Exception as error_transfer_tokens:
-        logging.error(
-            f"Tokens was not delegated from {account_address} value {value}{TOKEN_NAME}. Error {error_transfer_tokens}")
-        return None, error_transfer_tokens
-
-
-def investmint_tokens(account_address: str, value: int, investmint_token: str = 'amper', query: str = INVESTMINT_QUERY):
-    try:
-        _output, error_execute_bash = \
-            execute_bash(f'{query} {account_address} {str(value) + "s" + TOKEN_NAME.lower()} {investmint_token}')
-        if len(extract_from_console(_output, ['txhash'])[0][1]) > 0:
-            logging.info(
-                f"Tokens was investminted from {account_address} to {investmint_token} value {value}s{TOKEN_NAME} "
-                f"txhash {extract_from_console(_output, ['txhash'])[0][1]}")
-            return True, None
-        logging.error(
-            f"Tokens was not investminted from {account_address} to {investmint_token} value {value}s{TOKEN_NAME}. "
-            f"Error {error_execute_bash}")
-        return None, error_execute_bash
-    except Exception as error_transfer_tokens:
-        logging.error(
-            f"Tokens was not investminted from {account_address} to {investmint_token} value {value}s{TOKEN_NAME}. "
-            f"Error {error_transfer_tokens}")
-        return None, error_transfer_tokens
-
-
-def unjail_validator(query: str = UNJAIL_VALIDATOR_QUERY):
-    try:
-        _output, error_execute_bash = \
-            execute_bash(f'{query}')
-        if len(extract_from_console(_output, ['txhash'])[0][1]) > 0:
-            logging.info(
-                f"Unjail transaction was completed successfully"
-                f"txhash {extract_from_console(_output, ['txhash'])[0][1]}")
-            return True, None
-        logging.error(
-            f"Unjail transaction was not completed successfully. Error {error_execute_bash}")
-        return None, error_execute_bash
-    except Exception as error_transfer_tokens:
-        logging.error(
-            f"Unjail transaction was not completed successfully. Error {error_transfer_tokens}")
         return None, error_transfer_tokens
 
 
